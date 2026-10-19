@@ -15,7 +15,6 @@ Aplicación web para gestionar y hacer seguimiento a los trabajos de grado de la
 - Sin servlets propios, sin scriptlets, sin Maven y sin capa DAO.
 - Una carpeta por rol (`administrador/`, `comite/`, `docente/`, `estudiante/`) y una carpeta `comun/` para las páginas compartidas.
 - Fragmentos `.jspf` reutilizables para el control de acceso, el encabezado, el menú y los mensajes.
-- Conexión a la base de datos por un DataSource JNDI de Tomcat.
 - Los documentos se registran como **URL**; no se cargan archivos al servidor.
 
 ## Tecnologías
