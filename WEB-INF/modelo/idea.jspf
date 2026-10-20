@@ -1,0 +1,90 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tabla ideas.
+     Una idea está disponible si ningún proyecto en curso o finalizado la usa.
+       crear              entrada: idUsuario (autor), tituloIdea, objetivoIdea, problematicaIdea
+       listarDeAutor      entrada: idUsuario                                  salida: misIdeas
+       contarPendientes                                                       salida: ideasPendientes
+       listarPendientes                                                       salida: listaIdeasPendientes
+       decidir            entrada: idIdeaObjetivo, decision, observacion, idUsuario (revisor)
+                          salida: filasActualizadas (solo decide ideas PENDIENTE)
+       listarBanco        entrada: filtroTexto, filtroDisponibilidad (todas | disponibles | ocupadas),
+                                   soloParaEstudiante ('true' o 'false'), idUsuario
+                          salida: bancoIdeas --%>
+<c:choose>
+    <c:when test="${operacion eq 'crear'}">
+        <sql:update>
+            INSERT INTO ideas (id_autor, titulo, objetivo, problematica) VALUES (?, ?, ?, ?)
+            <sql:param value="${idUsuario}"/>
+            <sql:param value="${tituloIdea}"/>
+            <sql:param value="${objetivoIdea}"/>
+            <sql:param value="${problematicaIdea}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'listarDeAutor'}">
+        <sql:query var="misIdeas" scope="request">
+            SELECT i.id_idea, i.titulo, i.objetivo, i.problematica, i.estado, i.observacion,
+                   i.fecha_registro, i.fecha_revision,
+                   EXISTS (SELECT 1 FROM proyectos p
+                           WHERE p.id_idea = i.id_idea AND p.estado <> 'RECHAZADO') AS en_uso
+            FROM ideas i
+            WHERE i.id_autor = ?
+            ORDER BY i.fecha_registro DESC
+            <sql:param value="${idUsuario}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'contarPendientes'}">
+        <sql:query var="ideasPendientes" scope="request">
+            SELECT COUNT(*) AS total FROM ideas WHERE estado = 'PENDIENTE'
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'listarPendientes'}">
+        <sql:query var="listaIdeasPendientes" scope="request">
+            SELECT i.id_idea, i.titulo, i.objetivo, i.problematica, i.fecha_registro,
+                   u.nombres || ' ' || u.apellidos AS autor, r.nombre AS tipo_autor
+            FROM ideas i
+            JOIN usuarios u ON u.id_usuario = i.id_autor
+            JOIN roles r ON r.id_rol = u.id_rol
+            WHERE i.estado = 'PENDIENTE'
+            ORDER BY i.fecha_registro
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'decidir'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE ideas
+            SET estado = ?, observacion = NULLIF(?, ''), id_revisor = ?, fecha_revision = CURRENT_TIMESTAMP
+            WHERE id_idea = ? AND estado = 'PENDIENTE'
+            <sql:param value="${decision}"/>
+            <sql:param value="${observacion}"/>
+            <sql:param value="${idUsuario}"/>
+            <sql:param value="${idIdeaObjetivo}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'listarBanco'}">
+        <sql:query var="bancoIdeas" scope="request">
+            SELECT *
+            FROM (SELECT i.id_idea, i.titulo, i.objetivo, i.problematica, i.id_autor,
+                         u.nombres || ' ' || u.apellidos AS autor, r.nombre AS tipo_autor,
+                         NOT EXISTS (SELECT 1 FROM proyectos p
+                                     WHERE p.id_idea = i.id_idea AND p.estado <> 'RECHAZADO') AS disponible
+                  FROM ideas i
+                  JOIN usuarios u ON u.id_usuario = i.id_autor
+                  JOIN roles r ON r.id_rol = u.id_rol
+                  WHERE i.estado = 'APROBADO'
+                    AND (COALESCE(?, '') = '' OR i.titulo ILIKE '%' || ? || '%'
+                         OR u.nombres || ' ' || u.apellidos ILIKE '%' || ? || '%')
+                    AND (CAST(? AS BOOLEAN) = FALSE OR r.nombre = 'DOCENTE' OR i.id_autor = ?)) banco
+            WHERE ? = 'todas'
+               OR (? = 'disponibles' AND banco.disponible)
+               OR (? = 'ocupadas' AND NOT banco.disponible)
+            ORDER BY banco.disponible DESC, banco.titulo
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${soloParaEstudiante}"/>
+            <sql:param value="${idUsuario}"/>
+            <sql:param value="${filtroDisponibilidad}"/>
+            <sql:param value="${filtroDisponibilidad}"/>
+            <sql:param value="${filtroDisponibilidad}"/>
+        </sql:query>
+    </c:when>
+</c:choose>
