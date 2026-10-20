@@ -1,0 +1,49 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tabla usuarios.
+     El controlador define "operacion" y sus datos de entrada; el resultado queda en el ámbito request.
+       autenticar      entrada: correoBuscado, claveIngresada         salida: usuarioEncontrado
+       estadoCuenta    entrada: idUsuario                             salida: estadoCuenta
+       listarDePrueba                                                 salida: usuariosPrueba
+       cambiarClave    entrada: idUsuario, claveActual, claveNueva    salida: filasActualizadas --%>
+<c:choose>
+    <c:when test="${operacion eq 'autenticar'}">
+        <sql:query var="usuarioEncontrado" scope="request">
+            SELECT u.id_usuario, u.nombres, u.apellidos, u.correo, u.activo, r.nombre AS rol,
+                   e.id_estudiante, e.estado_inscripcion
+            FROM usuarios u
+            JOIN roles r ON r.id_rol = u.id_rol
+            LEFT JOIN estudiantes e ON e.id_usuario = u.id_usuario
+            WHERE u.correo = ? AND u.contrasena = crypt(?, u.contrasena)
+            <sql:param value="${correoBuscado}"/>
+            <sql:param value="${claveIngresada}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'estadoCuenta'}">
+        <sql:query var="estadoCuenta" scope="request">
+            SELECT u.activo, e.estado_inscripcion
+            FROM usuarios u
+            LEFT JOIN estudiantes e ON e.id_usuario = u.id_usuario
+            WHERE u.id_usuario = ?
+            <sql:param value="${idUsuario}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'listarDePrueba'}">
+        <sql:query var="usuariosPrueba" scope="request">
+            SELECT u.correo, u.nombres || ' ' || u.apellidos AS nombre, r.nombre AS rol
+            FROM usuarios u
+            JOIN roles r ON r.id_rol = u.id_rol
+            WHERE u.activo = TRUE
+            ORDER BY r.id_rol, u.correo
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'cambiarClave'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE usuarios
+            SET contrasena = crypt(?, gen_salt('bf'))
+            WHERE id_usuario = ? AND contrasena = crypt(?, contrasena)
+            <sql:param value="${claveNueva}"/>
+            <sql:param value="${idUsuario}"/>
+            <sql:param value="${claveActual}"/>
+        </sql:update>
+    </c:when>
+</c:choose>

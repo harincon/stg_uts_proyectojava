@@ -1,0 +1,10 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tabla fases.
+       listar   salida: fases --%>
+<c:choose>
+    <c:when test="${operacion eq 'listar'}">
+        <sql:query var="fases" scope="request">
+            SELECT id_fase, nombre, descripcion FROM fases ORDER BY id_fase
+        </sql:query>
+    </c:when>
+</c:choose>

@@ -1,0 +1,10 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tabla documentos_institucionales.
+       listarActivos   salida: documentos --%>
+<c:choose>
+    <c:when test="${operacion eq 'listarActivos'}">
+        <sql:query var="documentos" scope="request">
+            SELECT nombre, url FROM documentos_institucionales WHERE activo = TRUE ORDER BY nombre
+        </sql:query>
+    </c:when>
+</c:choose>

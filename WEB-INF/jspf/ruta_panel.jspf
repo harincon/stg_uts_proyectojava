@@ -1,0 +1,19 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Deja en rutaPanel (ámbito request) el controlador del panel del usuario de la sesión --%>
+<c:choose>
+    <c:when test="${sessionScope.usuario.rol eq 'ADMINISTRADOR'}">
+        <c:set var="rutaPanel" value="/controlador/administrador/panel.jsp" scope="request"/>
+    </c:when>
+    <c:when test="${sessionScope.usuario.rol eq 'COMITE'}">
+        <c:set var="rutaPanel" value="/controlador/comite/panel.jsp" scope="request"/>
+    </c:when>
+    <c:when test="${sessionScope.usuario.rol eq 'DOCENTE'}">
+        <c:set var="rutaPanel" value="/controlador/docente/panel.jsp" scope="request"/>
+    </c:when>
+    <c:when test="${sessionScope.usuario.estado_inscripcion eq 'APROBADO'}">
+        <c:set var="rutaPanel" value="/controlador/estudiante/panel.jsp" scope="request"/>
+    </c:when>
+    <c:otherwise>
+        <c:set var="rutaPanel" value="/controlador/estudiante/inscripcion.jsp" scope="request"/>
+    </c:otherwise>
+</c:choose>

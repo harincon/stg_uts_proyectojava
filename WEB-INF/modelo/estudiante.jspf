@@ -1,0 +1,15 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tabla estudiantes.
+       inscripcionDeUsuario   entrada: idUsuario   salida: inscripcion --%>
+<c:choose>
+    <c:when test="${operacion eq 'inscripcionDeUsuario'}">
+        <sql:query var="inscripcion" scope="request">
+            SELECT e.estado_inscripcion, e.observacion_inscripcion, e.semestre, e.fecha_revision,
+                   p.nombre AS programa
+            FROM estudiantes e
+            JOIN programas p ON p.id_programa = e.id_programa
+            WHERE e.id_usuario = ?
+            <sql:param value="${idUsuario}"/>
+        </sql:query>
+    </c:when>
+</c:choose>

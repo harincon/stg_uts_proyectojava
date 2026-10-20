@@ -11,10 +11,12 @@ Aplicación web para gestionar y hacer seguimiento a los trabajos de grado de la
 
 ## Arquitectura
 
-- Páginas **JSP con JSTL 1.2**. El acceso a datos se hace con las etiquetas `<sql:*>` de JSTL.
-- Sin servlets propios, sin scriptlets, sin Maven y sin capa DAO.
-- Una carpeta por rol (`administrador/`, `comite/`, `docente/`, `estudiante/`) y una carpeta `comun/` para las páginas compartidas.
-- Fragmentos `.jspf` reutilizables para el control de acceso, el encabezado, el menú y los mensajes.
+Patrón **MVC** construido solo con **JSP y JSTL 1.2**, sin servlets propios, sin scriptlets, sin Maven y sin capa DAO:
+
+- **Modelo** (`WEB-INF/modelo/`): consultas a la base de datos con las etiquetas `<sql:*>` de JSTL, agrupadas por tabla.
+- **Vista** (`WEB-INF/vista/`): páginas que solo muestran la información con HTML y JSTL.
+- **Controlador** (`controlador/`): recibe cada petición, controla el acceso por rol, usa el modelo y envía a la vista.
+- Dentro de `controlador/` y `WEB-INF/vista/` hay una carpeta por rol (`administrador/`, `comite/`, `docente/`, `estudiante/`) y una carpeta `comun/`.
 - Los documentos se registran como **URL**; no se cargan archivos al servidor.
 
 ## Tecnologías

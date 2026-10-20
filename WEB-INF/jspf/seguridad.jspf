@@ -1,0 +1,27 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- CONTROL DE ACCESO (lo incluye cada controlador). Antes de incluirlo, el controlador define:
+       rolesPermitidos  : un rol, varios separados por coma, o TODOS
+       requiereAprobado : true si exige inscripción aprobada (solo estudiantes) --%>
+<c:if test="${empty sessionScope.usuario}">
+    <c:redirect url="/index.jsp"><c:param name="err" value="Debe iniciar sesión."/></c:redirect>
+</c:if>
+
+<c:set var="operacion" value="estadoCuenta"/>
+<c:set var="idUsuario" value="${sessionScope.usuario.id_usuario}"/>
+<%@ include file="/WEB-INF/modelo/usuario.jspf" %>
+
+<c:if test="${estadoCuenta.rowCount eq 0 or not estadoCuenta.rows[0].activo}">
+    ${pageContext.session.invalidate()}
+    <c:redirect url="/index.jsp"><c:param name="err" value="Su cuenta está desactivada."/></c:redirect>
+</c:if>
+
+<c:set var="usuarioActual" value="${estadoCuenta.rows[0]}"/>
+<c:set target="${sessionScope.usuario}" property="estado_inscripcion" value="${usuarioActual.estado_inscripcion}"/>
+
+<c:if test="${rolesPermitidos ne 'TODOS' and not fn:contains(rolesPermitidos, sessionScope.usuario.rol)}">
+    <c:redirect url="/controlador/sin_permiso.jsp"/>
+</c:if>
+
+<c:if test="${sessionScope.usuario.rol eq 'ESTUDIANTE' and requiereAprobado and usuarioActual.estado_inscripcion ne 'APROBADO'}">
+    <c:redirect url="/controlador/estudiante/inscripcion.jsp"/>
+</c:if>
