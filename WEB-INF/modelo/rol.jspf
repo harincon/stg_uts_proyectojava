@@ -1,0 +1,17 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tabla roles.
+       listarAsignables                      salida: rolesAsignables (todos menos ADMINISTRADOR)
+       obtener          entrada: idRolNuevo  salida: rolBuscado --%>
+<c:choose>
+    <c:when test="${operacion eq 'listarAsignables'}">
+        <sql:query var="rolesAsignables" scope="request">
+            SELECT id_rol, nombre FROM roles WHERE nombre <> 'ADMINISTRADOR' ORDER BY id_rol
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'obtener'}">
+        <sql:query var="rolBuscado" scope="request">
+            SELECT id_rol, nombre FROM roles WHERE id_rol = ?
+            <sql:param value="${idRolNuevo}"/>
+        </sql:query>
+    </c:when>
+</c:choose>

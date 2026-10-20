@@ -1,6 +1,9 @@
 <%@ page pageEncoding="UTF-8" %>
 <%-- MODELO: tabla estudiantes.
-       inscripcionDeUsuario   entrada: idUsuario   salida: inscripcion --%>
+       inscripcionDeUsuario   entrada: idUsuario                                      salida: inscripcion
+       contarPendientes                                                               salida: pendientes
+       crearAprobado          entrada: idObjetivo, idProgramaNuevo, semestreNuevo, idUsuario (revisor)
+       actualizarPrograma     entrada: idObjetivo, idProgramaNuevo, semestreNuevo --%>
 <c:choose>
     <c:when test="${operacion eq 'inscripcionDeUsuario'}">
         <sql:query var="inscripcion" scope="request">
@@ -11,5 +14,28 @@
             WHERE e.id_usuario = ?
             <sql:param value="${idUsuario}"/>
         </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'contarPendientes'}">
+        <sql:query var="pendientes" scope="request">
+            SELECT COUNT(*) AS total FROM estudiantes WHERE estado_inscripcion = 'PENDIENTE'
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'crearAprobado'}">
+        <sql:update>
+            INSERT INTO estudiantes (id_usuario, id_programa, semestre, estado_inscripcion, id_revisor, fecha_revision)
+            VALUES (?, ?, ?, 'APROBADO', ?, CURRENT_TIMESTAMP)
+            <sql:param value="${idObjetivo}"/>
+            <sql:param value="${idProgramaNuevo}"/>
+            <sql:param value="${semestreNuevo}"/>
+            <sql:param value="${idUsuario}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'actualizarPrograma'}">
+        <sql:update>
+            UPDATE estudiantes SET id_programa = ?, semestre = ? WHERE id_usuario = ?
+            <sql:param value="${idProgramaNuevo}"/>
+            <sql:param value="${semestreNuevo}"/>
+            <sql:param value="${idObjetivo}"/>
+        </sql:update>
     </c:when>
 </c:choose>

@@ -1,0 +1,47 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tabla programas.
+       listar                                                        salida: programas (con total_estudiantes)
+       contarNombre   entrada: nombrePrograma, idProgramaObjetivo    salida: nombreRepetido
+       crear          entrada: nombrePrograma
+       renombrar      entrada: idProgramaObjetivo, nombrePrograma    salida: filasActualizadas
+       eliminar       entrada: idProgramaObjetivo                    salida: filasEliminadas
+                      (solo elimina si ningún estudiante tiene el programa) --%>
+<c:choose>
+    <c:when test="${operacion eq 'listar'}">
+        <sql:query var="programas" scope="request">
+            SELECT p.id_programa, p.nombre, COUNT(e.id_estudiante) AS total_estudiantes
+            FROM programas p
+            LEFT JOIN estudiantes e ON e.id_programa = p.id_programa
+            GROUP BY p.id_programa, p.nombre
+            ORDER BY p.nombre
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'contarNombre'}">
+        <sql:query var="nombreRepetido" scope="request">
+            SELECT COUNT(*) AS total FROM programas WHERE LOWER(nombre) = LOWER(?) AND id_programa <> ?
+            <sql:param value="${nombrePrograma}"/>
+            <sql:param value="${idProgramaObjetivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'crear'}">
+        <sql:update>
+            INSERT INTO programas (nombre) VALUES (?)
+            <sql:param value="${nombrePrograma}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'renombrar'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE programas SET nombre = ? WHERE id_programa = ?
+            <sql:param value="${nombrePrograma}"/>
+            <sql:param value="${idProgramaObjetivo}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'eliminar'}">
+        <sql:update var="filasEliminadas" scope="request">
+            DELETE FROM programas p
+            WHERE p.id_programa = ?
+              AND NOT EXISTS (SELECT 1 FROM estudiantes e WHERE e.id_programa = p.id_programa)
+            <sql:param value="${idProgramaObjetivo}"/>
+        </sql:update>
+    </c:when>
+</c:choose>

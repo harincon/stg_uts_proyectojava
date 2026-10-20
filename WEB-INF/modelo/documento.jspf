@@ -1,10 +1,41 @@
 <%@ page pageEncoding="UTF-8" %>
 <%-- MODELO: tabla documentos_institucionales.
-       listarActivos   salida: documentos --%>
+       listarActivos                                                      salida: documentos
+       listarTodos                                                        salida: documentos
+       crear          entrada: nombreDocumento, urlDocumento
+       editar         entrada: idDocumento, nombreDocumento, urlDocumento salida: filasActualizadas
+       cambiarActivo  entrada: idDocumento, activoNuevo ('true' o 'false') salida: filasActualizadas --%>
 <c:choose>
     <c:when test="${operacion eq 'listarActivos'}">
         <sql:query var="documentos" scope="request">
             SELECT nombre, url FROM documentos_institucionales WHERE activo = TRUE ORDER BY nombre
         </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'listarTodos'}">
+        <sql:query var="documentos" scope="request">
+            SELECT id_documento, nombre, url, activo FROM documentos_institucionales ORDER BY nombre
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'crear'}">
+        <sql:update>
+            INSERT INTO documentos_institucionales (nombre, url) VALUES (?, ?)
+            <sql:param value="${nombreDocumento}"/>
+            <sql:param value="${urlDocumento}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'editar'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE documentos_institucionales SET nombre = ?, url = ? WHERE id_documento = ?
+            <sql:param value="${nombreDocumento}"/>
+            <sql:param value="${urlDocumento}"/>
+            <sql:param value="${idDocumento}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'cambiarActivo'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE documentos_institucionales SET activo = CAST(? AS BOOLEAN) WHERE id_documento = ?
+            <sql:param value="${activoNuevo}"/>
+            <sql:param value="${idDocumento}"/>
+        </sql:update>
     </c:when>
 </c:choose>

@@ -1,10 +1,24 @@
 <%@ page pageEncoding="UTF-8" %>
 <%-- MODELO: tabla usuarios.
      El controlador define "operacion" y sus datos de entrada; el resultado queda en el ámbito request.
-       autenticar      entrada: correoBuscado, claveIngresada         salida: usuarioEncontrado
-       estadoCuenta    entrada: idUsuario                             salida: estadoCuenta
-       listarDePrueba                                                 salida: usuariosPrueba
-       cambiarClave    entrada: idUsuario, claveActual, claveNueva    salida: filasActualizadas --%>
+       autenticar          entrada: correoBuscado, claveIngresada                     salida: usuarioEncontrado
+       estadoCuenta        entrada: idUsuario                                         salida: estadoCuenta
+       listarDePrueba                                                                 salida: usuariosPrueba
+       cambiarClave        entrada: idUsuario, claveActual, claveNueva                salida: filasActualizadas
+       conteoPorRol                                                                   salida: conteoRoles
+       listarFiltrado      entrada: filtroTexto, filtroRol, filtroActivo, desplazamiento
+                           salida: listaUsuarios (20 filas), totalFiltrado
+       obtener             entrada: idObjetivo                                        salida: usuarioObjetivo
+       contarDuplicados    entrada: correoNuevo, identificacionNueva, idObjetivo      salida: duplicados
+       crear               entrada: idRolNuevo, nombresNuevo, apellidosNuevo, identificacionNueva,
+                                    correoNuevo, claveNueva                           salida: usuarioCreado
+       actualizar          entrada: idObjetivo, idRolNuevo, nombresNuevo, apellidosNuevo,
+                                    identificacionNueva, correoNuevo                  salida: filasActualizadas
+       registrosAsociados  entrada: idObjetivo                                        salida: asociados
+       proyectosEnCurso    entrada: idObjetivo                                        salida: proyectosEnCurso
+       cambiarActivo       entrada: idObjetivo, activoNuevo ('true' o 'false')        salida: filasActualizadas
+       restablecerClave    entrada: idObjetivo, claveNueva                            salida: filasActualizadas
+       eliminar            entrada: idObjetivo                                        salida: filasEliminadas --%>
 <c:choose>
     <c:when test="${operacion eq 'autenticar'}">
         <sql:query var="usuarioEncontrado" scope="request">
@@ -44,6 +58,161 @@
             <sql:param value="${claveNueva}"/>
             <sql:param value="${idUsuario}"/>
             <sql:param value="${claveActual}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'conteoPorRol'}">
+        <sql:query var="conteoRoles" scope="request">
+            SELECT r.nombre AS rol,
+                   COUNT(u.id_usuario) AS total,
+                   SUM(CASE WHEN u.activo THEN 1 ELSE 0 END) AS activos,
+                   SUM(CASE WHEN u.id_usuario IS NOT NULL AND NOT u.activo THEN 1 ELSE 0 END) AS inactivos
+            FROM roles r
+            LEFT JOIN usuarios u ON u.id_rol = r.id_rol
+            GROUP BY r.id_rol, r.nombre
+            ORDER BY r.id_rol
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'listarFiltrado'}">
+        <sql:query var="listaUsuarios" scope="request">
+            SELECT u.id_usuario, u.nombres, u.apellidos, u.identificacion, u.correo, u.activo,
+                   r.nombre AS rol, p.nombre AS programa, e.semestre, e.estado_inscripcion
+            FROM usuarios u
+            JOIN roles r ON r.id_rol = u.id_rol
+            LEFT JOIN estudiantes e ON e.id_usuario = u.id_usuario
+            LEFT JOIN programas p ON p.id_programa = e.id_programa
+            WHERE (COALESCE(?, '') = '' OR u.nombres || ' ' || u.apellidos ILIKE '%' || ? || '%'
+                   OR u.identificacion ILIKE '%' || ? || '%' OR u.correo ILIKE '%' || ? || '%')
+              AND (COALESCE(?, '') = '' OR r.nombre = ?)
+              AND (COALESCE(?, '') = '' OR CAST(u.activo AS TEXT) = ?)
+            ORDER BY r.id_rol, u.apellidos, u.nombres
+            LIMIT 20 OFFSET ?
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${filtroRol}"/>
+            <sql:param value="${filtroRol}"/>
+            <sql:param value="${filtroActivo}"/>
+            <sql:param value="${filtroActivo}"/>
+            <sql:param value="${desplazamiento}"/>
+        </sql:query>
+        <sql:query var="totalFiltrado" scope="request">
+            SELECT COUNT(*) AS total
+            FROM usuarios u
+            JOIN roles r ON r.id_rol = u.id_rol
+            WHERE (COALESCE(?, '') = '' OR u.nombres || ' ' || u.apellidos ILIKE '%' || ? || '%'
+                   OR u.identificacion ILIKE '%' || ? || '%' OR u.correo ILIKE '%' || ? || '%')
+              AND (COALESCE(?, '') = '' OR r.nombre = ?)
+              AND (COALESCE(?, '') = '' OR CAST(u.activo AS TEXT) = ?)
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${filtroTexto}"/>
+            <sql:param value="${filtroRol}"/>
+            <sql:param value="${filtroRol}"/>
+            <sql:param value="${filtroActivo}"/>
+            <sql:param value="${filtroActivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'obtener'}">
+        <sql:query var="usuarioObjetivo" scope="request">
+            SELECT u.id_usuario, u.id_rol, u.nombres, u.apellidos, u.identificacion, u.correo, u.activo,
+                   r.nombre AS rol, e.id_programa, e.semestre, e.estado_inscripcion
+            FROM usuarios u
+            JOIN roles r ON r.id_rol = u.id_rol
+            LEFT JOIN estudiantes e ON e.id_usuario = u.id_usuario
+            WHERE u.id_usuario = ?
+            <sql:param value="${idObjetivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'contarDuplicados'}">
+        <sql:query var="duplicados" scope="request">
+            SELECT COUNT(*) AS total
+            FROM usuarios
+            WHERE (correo = ? OR identificacion = ?) AND id_usuario <> ?
+            <sql:param value="${correoNuevo}"/>
+            <sql:param value="${identificacionNueva}"/>
+            <sql:param value="${idObjetivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'crear'}">
+        <sql:query var="usuarioCreado" scope="request">
+            INSERT INTO usuarios (id_rol, nombres, apellidos, identificacion, correo, contrasena)
+            VALUES (?, ?, ?, ?, ?, crypt(?, gen_salt('bf')))
+            RETURNING id_usuario
+            <sql:param value="${idRolNuevo}"/>
+            <sql:param value="${nombresNuevo}"/>
+            <sql:param value="${apellidosNuevo}"/>
+            <sql:param value="${identificacionNueva}"/>
+            <sql:param value="${correoNuevo}"/>
+            <sql:param value="${claveNueva}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'actualizar'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE usuarios
+            SET id_rol = ?, nombres = ?, apellidos = ?, identificacion = ?, correo = ?
+            WHERE id_usuario = ?
+            <sql:param value="${idRolNuevo}"/>
+            <sql:param value="${nombresNuevo}"/>
+            <sql:param value="${apellidosNuevo}"/>
+            <sql:param value="${identificacionNueva}"/>
+            <sql:param value="${correoNuevo}"/>
+            <sql:param value="${idObjetivo}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'registrosAsociados'}">
+        <sql:query var="asociados" scope="request">
+            SELECT (SELECT COUNT(*) FROM ideas WHERE id_autor = ? OR id_revisor = ?)
+                 + (SELECT COUNT(*) FROM asignaciones WHERE id_usuario = ?)
+                 + (SELECT COUNT(*) FROM revisiones WHERE id_usuario = ?)
+                 + (SELECT COUNT(*) FROM historial_versiones WHERE id_usuario = ?)
+                 + (SELECT COUNT(*) FROM estudiantes WHERE id_revisor = ?)
+                 + (SELECT COUNT(*) FROM proyecto_estudiantes pe
+                    JOIN estudiantes e ON e.id_estudiante = pe.id_estudiante
+                    WHERE e.id_usuario = ?) AS total
+            <sql:param value="${idObjetivo}"/>
+            <sql:param value="${idObjetivo}"/>
+            <sql:param value="${idObjetivo}"/>
+            <sql:param value="${idObjetivo}"/>
+            <sql:param value="${idObjetivo}"/>
+            <sql:param value="${idObjetivo}"/>
+            <sql:param value="${idObjetivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'proyectosEnCurso'}">
+        <sql:query var="proyectosEnCurso" scope="request">
+            SELECT i.titulo
+            FROM asignaciones a
+            JOIN proyectos p ON p.id_proyecto = a.id_proyecto
+            JOIN ideas i ON i.id_idea = p.id_idea
+            WHERE a.id_usuario = ? AND p.estado = 'EN_CURSO'
+            ORDER BY i.titulo
+            <sql:param value="${idObjetivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'cambiarActivo'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE usuarios SET activo = CAST(? AS BOOLEAN) WHERE id_usuario = ?
+            <sql:param value="${activoNuevo}"/>
+            <sql:param value="${idObjetivo}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'restablecerClave'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE usuarios SET contrasena = crypt(?, gen_salt('bf')) WHERE id_usuario = ?
+            <sql:param value="${claveNueva}"/>
+            <sql:param value="${idObjetivo}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'eliminar'}">
+        <sql:update>
+            DELETE FROM estudiantes WHERE id_usuario = ?
+            <sql:param value="${idObjetivo}"/>
+        </sql:update>
+        <sql:update var="filasEliminadas" scope="request">
+            DELETE FROM usuarios WHERE id_usuario = ?
+            <sql:param value="${idObjetivo}"/>
         </sql:update>
     </c:when>
 </c:choose>
