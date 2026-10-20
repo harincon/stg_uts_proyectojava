@@ -1,5 +1,5 @@
 varios/
-pruebas/config.sh
-pruebas/.cookies*
+pruebas/
+.superpowers/
 *.log
 .vscode/

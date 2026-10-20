@@ -1,0 +1,12 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Pie común: cierra el contenido abierto en cabecera.jspf --%>
+</main>
+<jsp:useBean id="fechaActual" class="java.util.Date"/>
+<footer class="pie-pagina text-center py-3 mt-4">
+    <small>Unidades Tecnológicas de Santander &middot; Sistema de Gestión de Trabajos de Grado &middot;
+        <fmt:formatDate value="${fechaActual}" pattern="yyyy"/></small>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<c:url value='/js/app.js'/>"></script>
+</body>
+</html>

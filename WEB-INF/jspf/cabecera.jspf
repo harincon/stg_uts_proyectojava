@@ -1,0 +1,81 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Encabezado común. Antes de incluirlo la página puede definir tituloPagina. --%>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><c:out value="${empty tituloPagina ? 'Trabajos de Grado UTS' : tituloPagina}"/></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="<c:url value='/css/estilos.css'/>" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark barra-principal">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="<c:url value='/index.jsp'/>">
+            <i class="bi bi-mortarboard-fill"></i> Trabajos de Grado UTS
+        </a>
+        <c:if test="${not empty sessionScope.usuario}">
+            <c:set var="rolMenu" value="${sessionScope.usuario.rol}"/>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal"
+                    aria-controls="menuPrincipal" aria-expanded="false" aria-label="Mostrar menú">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menuPrincipal">
+                <ul class="navbar-nav me-auto">
+                    <c:choose>
+                        <c:when test="${rolMenu eq 'ADMINISTRADOR'}">
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/administrador/panel.jsp'/>">Inicio</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/administrador/usuarios.jsp'/>">Usuarios</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/administrador/programas.jsp'/>">Programas</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/administrador/documentos.jsp'/>">Base documental</a></li>
+                        </c:when>
+                        <c:when test="${rolMenu eq 'COMITE'}">
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comite/panel.jsp'/>">Inicio</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comite/inscripciones.jsp'/>">Inscripciones</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comite/ideas.jsp'/>">Ideas</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comun/banco_ideas.jsp'/>">Banco de ideas</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comite/proyectos.jsp'/>">Proyectos</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comite/informes.jsp'/>">Informes</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comun/base_documental.jsp'/>">Base documental</a></li>
+                        </c:when>
+                        <c:when test="${rolMenu eq 'DOCENTE'}">
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/docente/panel.jsp'/>">Inicio</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/docente/director.jsp'/>">Como director</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/docente/evaluador.jsp'/>">Como evaluador</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comun/mis_ideas.jsp'/>">Mis ideas</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comun/banco_ideas.jsp'/>">Banco de ideas</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comun/base_documental.jsp'/>">Base documental</a></li>
+                        </c:when>
+                        <c:when test="${rolMenu eq 'ESTUDIANTE' and sessionScope.usuario.estado_inscripcion eq 'APROBADO'}">
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/estudiante/panel.jsp'/>">Inicio</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comun/mis_ideas.jsp'/>">Mis ideas</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comun/banco_ideas.jsp'/>">Banco de ideas</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comun/base_documental.jsp'/>">Base documental</a></li>
+                        </c:when>
+                        <c:when test="${rolMenu eq 'ESTUDIANTE'}">
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/estudiante/inscripcion.jsp'/>">Estado de mi inscripción</a></li>
+                            <li class="nav-item"><a class="nav-link" href="<c:url value='/comun/base_documental.jsp'/>">Base documental</a></li>
+                        </c:when>
+                    </c:choose>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i>
+                            <c:out value="${sessionScope.usuario.nombres}"/>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text small text-muted"><c:out value="${rolMenu}"/></span></li>
+                            <li><a class="dropdown-item" href="<c:url value='/comun/cambiar_clave.jsp'/>">Cambiar contraseña</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="<c:url value='/salir.jsp'/>">Cerrar sesión</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </c:if>
+    </div>
+</nav>
+<main class="container py-4">

@@ -1,0 +1,14 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Muestra el mensaje de éxito (msg) o de error (err) que llega después de una acción --%>
+<c:if test="${not empty param.msg}">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <c:out value="${param.msg}"/>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+</c:if>
+<c:if test="${not empty param.err}">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <c:out value="${param.err}"/>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+</c:if>

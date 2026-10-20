@@ -1,0 +1,14 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sql" uri="http://java.sun.com/jsp/jstl/sql" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<fmt:requestEncoding value="UTF-8"/>
+<fmt:setLocale value="es_CO"/>
+<%-- Conexión a PostgreSQL por defecto para todas las etiquetas sql.
+     Los datos se leen de las variables de entorno DB_URL, DB_USER y DB_PASSWORD. --%>
+<sql:setDataSource driver="org.postgresql.Driver"
+                   url="${System.getenv('DB_URL')}"
+                   user="${System.getenv('DB_USER')}"
+                   password="${System.getenv('DB_PASSWORD')}"
+                   scope="application"/>

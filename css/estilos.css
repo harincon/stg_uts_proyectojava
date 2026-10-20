@@ -1,0 +1,45 @@
+:root {
+    --uts-verde: #00695c;
+    --uts-verde-oscuro: #004d40;
+    --uts-verde-claro: #e8f5e9;
+}
+
+body {
+    background: #f4f6f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.barra-principal {
+    background: var(--uts-verde);
+}
+
+.pie-pagina {
+    background: #ffffff;
+    border-top: 1px solid #dee2e6;
+    color: #6c757d;
+}
+
+.portada {
+    background: linear-gradient(135deg, var(--uts-verde-oscuro), var(--uts-verde));
+    color: #ffffff;
+    border-radius: 0.75rem;
+}
+
+.fase-numero {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--uts-verde-claro);
+    color: var(--uts-verde-oscuro);
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
