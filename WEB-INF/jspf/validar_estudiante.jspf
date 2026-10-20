@@ -1,0 +1,55 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- VALIDACIÓN de los datos del estudiante (registro y nueva solicitud de inscripción).
+     Entrada: nombresNuevo, apellidosNuevo, identificacionNueva, correoNuevo, idObjetivo (0 si es nuevo),
+              pedirClave (true en el registro), claveNueva, confirmacionClave,
+              param.id_programa, param.semestre
+     Salida:  error (vacío si todo es válido), idProgramaNuevo, semestreNuevo --%>
+<c:catch>
+    <fmt:parseNumber var="idProgramaNuevo" value="${param.id_programa}" integerOnly="true"/>
+</c:catch>
+<c:catch var="errorSemestre">
+    <fmt:parseNumber var="semestreNuevo" value="${param.semestre}" integerOnly="true"/>
+</c:catch>
+
+<c:set var="soloDigitos" value="${true}"/>
+<c:forEach var="posicion" begin="0" end="${fn:length(identificacionNueva) - 1}">
+    <c:if test="${not fn:contains('0123456789', fn:substring(identificacionNueva, posicion, posicion + 1))}">
+        <c:set var="soloDigitos" value="${false}"/>
+    </c:if>
+</c:forEach>
+
+<c:choose>
+    <c:when test="${empty nombresNuevo or empty apellidosNuevo or empty identificacionNueva or empty correoNuevo
+                    or empty param.id_programa or empty param.semestre or (pedirClave and empty claveNueva)}">
+        <c:set var="error" value="Complete todos los campos."/>
+    </c:when>
+    <c:when test="${not soloDigitos}">
+        <c:set var="error" value="La identificación solo debe contener números."/>
+    </c:when>
+    <c:when test="${fn:length(identificacionNueva) lt 5 or fn:length(identificacionNueva) gt 15}">
+        <c:set var="error" value="La identificación debe tener entre 5 y 15 dígitos."/>
+    </c:when>
+    <c:when test="${not fn:contains(correoNuevo, '@')}">
+        <c:set var="error" value="El correo no es válido."/>
+    </c:when>
+    <c:when test="${pedirClave and fn:length(claveNueva) lt 8}">
+        <c:set var="error" value="La contraseña debe tener al menos 8 caracteres."/>
+    </c:when>
+    <c:when test="${pedirClave and claveNueva ne confirmacionClave}">
+        <c:set var="error" value="La confirmación no coincide."/>
+    </c:when>
+    <c:when test="${not empty errorSemestre or empty semestreNuevo or semestreNuevo lt 1 or semestreNuevo gt 10}">
+        <c:set var="error" value="El semestre debe estar entre 1 y 10."/>
+    </c:when>
+    <c:when test="${empty idProgramaNuevo}">
+        <c:set var="error" value="Seleccione un programa."/>
+    </c:when>
+</c:choose>
+
+<c:if test="${empty error}">
+    <c:set var="operacion" value="contarDuplicados"/>
+    <%@ include file="/WEB-INF/modelo/usuario.jspf" %>
+    <c:if test="${duplicados.rows[0].total gt 0}">
+        <c:set var="error" value="Ya existe una cuenta con ese correo o identificación."/>
+    </c:if>
+</c:if>

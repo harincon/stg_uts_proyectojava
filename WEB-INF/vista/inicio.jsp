@@ -56,6 +56,8 @@
                             </div>
                             <button type="submit" class="btn btn-success w-100">Ingresar</button>
                         </form>
+                        <p class="text-center small mt-3 mb-0">¿Es estudiante y no tiene cuenta?
+                            <a href="<c:url value='/controlador/registro.jsp'/>">Registrarse</a></p>
                     </c:otherwise>
                 </c:choose>
                 <button type="button" class="btn btn-outline-secondary w-100 mt-3"

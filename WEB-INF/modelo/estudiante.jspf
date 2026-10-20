@@ -1,16 +1,24 @@
 <%@ page pageEncoding="UTF-8" %>
 <%-- MODELO: tabla estudiantes.
-       inscripcionDeUsuario   entrada: idUsuario                                      salida: inscripcion
-       contarPendientes                                                               salida: pendientes
+       inscripcionDeUsuario   entrada: idUsuario                                         salida: inscripcion
+       contarPendientes                                                                  salida: pendientes
+       listarPendientes                                                                  salida: inscripcionesPendientes
        crearAprobado          entrada: idObjetivo, idProgramaNuevo, semestreNuevo, idUsuario (revisor)
-       actualizarPrograma     entrada: idObjetivo, idProgramaNuevo, semestreNuevo --%>
+       crearPendiente         entrada: idObjetivo, idProgramaNuevo, semestreNuevo
+       actualizarPrograma     entrada: idObjetivo, idProgramaNuevo, semestreNuevo
+       reenviar               entrada: idObjetivo, idProgramaNuevo, semestreNuevo        salida: filasActualizadas
+                              (solo si la inscripción está RECHAZADA; queda PENDIENTE)
+       decidir                entrada: idEstudianteObjetivo, decision, observacion, idUsuario (revisor)
+                              salida: filasActualizadas (solo decide inscripciones PENDIENTE) --%>
 <c:choose>
     <c:when test="${operacion eq 'inscripcionDeUsuario'}">
         <sql:query var="inscripcion" scope="request">
-            SELECT e.estado_inscripcion, e.observacion_inscripcion, e.semestre, e.fecha_revision,
-                   p.nombre AS programa
+            SELECT e.id_estudiante, e.estado_inscripcion, e.observacion_inscripcion, e.semestre, e.id_programa,
+                   e.fecha_revision, p.nombre AS programa,
+                   u.nombres, u.apellidos, u.identificacion, u.correo
             FROM estudiantes e
             JOIN programas p ON p.id_programa = e.id_programa
+            JOIN usuarios u ON u.id_usuario = e.id_usuario
             WHERE e.id_usuario = ?
             <sql:param value="${idUsuario}"/>
         </sql:query>
@@ -18,6 +26,17 @@
     <c:when test="${operacion eq 'contarPendientes'}">
         <sql:query var="pendientes" scope="request">
             SELECT COUNT(*) AS total FROM estudiantes WHERE estado_inscripcion = 'PENDIENTE'
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'listarPendientes'}">
+        <sql:query var="inscripcionesPendientes" scope="request">
+            SELECT e.id_estudiante, e.semestre, e.observacion_inscripcion, p.nombre AS programa,
+                   u.nombres, u.apellidos, u.identificacion, u.correo, u.fecha_registro
+            FROM estudiantes e
+            JOIN usuarios u ON u.id_usuario = e.id_usuario
+            JOIN programas p ON p.id_programa = e.id_programa
+            WHERE e.estado_inscripcion = 'PENDIENTE' AND u.activo = TRUE
+            ORDER BY u.fecha_registro
         </sql:query>
     </c:when>
     <c:when test="${operacion eq 'crearAprobado'}">
@@ -30,12 +49,41 @@
             <sql:param value="${idUsuario}"/>
         </sql:update>
     </c:when>
+    <c:when test="${operacion eq 'crearPendiente'}">
+        <sql:update>
+            INSERT INTO estudiantes (id_usuario, id_programa, semestre) VALUES (?, ?, ?)
+            <sql:param value="${idObjetivo}"/>
+            <sql:param value="${idProgramaNuevo}"/>
+            <sql:param value="${semestreNuevo}"/>
+        </sql:update>
+    </c:when>
     <c:when test="${operacion eq 'actualizarPrograma'}">
         <sql:update>
             UPDATE estudiantes SET id_programa = ?, semestre = ? WHERE id_usuario = ?
             <sql:param value="${idProgramaNuevo}"/>
             <sql:param value="${semestreNuevo}"/>
             <sql:param value="${idObjetivo}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'reenviar'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE estudiantes
+            SET id_programa = ?, semestre = ?, estado_inscripcion = 'PENDIENTE'
+            WHERE id_usuario = ? AND estado_inscripcion = 'RECHAZADO'
+            <sql:param value="${idProgramaNuevo}"/>
+            <sql:param value="${semestreNuevo}"/>
+            <sql:param value="${idObjetivo}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'decidir'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE estudiantes
+            SET estado_inscripcion = ?, observacion_inscripcion = NULLIF(?, ''), id_revisor = ?, fecha_revision = CURRENT_TIMESTAMP
+            WHERE id_estudiante = ? AND estado_inscripcion = 'PENDIENTE'
+            <sql:param value="${decision}"/>
+            <sql:param value="${observacion}"/>
+            <sql:param value="${idUsuario}"/>
+            <sql:param value="${idEstudianteObjetivo}"/>
         </sql:update>
     </c:when>
 </c:choose>

@@ -3,22 +3,22 @@
 
 -- Usuarios
 INSERT INTO usuarios (id_rol, nombres, apellidos, identificacion, correo, contrasena, activo) VALUES
-    (2, 'Ana María', 'Rueda',      '1001', 'comite1@uts.edu.co',  crypt('Clave123', gen_salt('bf')), TRUE),
-    (2, 'Jorge',     'Pinzón',     '1002', 'comite2@uts.edu.co',  crypt('Clave123', gen_salt('bf')), TRUE),
-    (3, 'Carlos',    'Méndez',     '2001', 'docente1@uts.edu.co', crypt('Clave123', gen_salt('bf')), TRUE),
-    (3, 'Marta',     'Villamizar', '2002', 'docente2@uts.edu.co', crypt('Clave123', gen_salt('bf')), TRUE),
-    (3, 'Luis',      'Ardila',     '2003', 'docente3@uts.edu.co', crypt('Clave123', gen_salt('bf')), TRUE),
-    (3, 'Sandra',    'Ortiz',      '2004', 'docente4@uts.edu.co', crypt('Clave123', gen_salt('bf')), TRUE),
-    (3, 'Pedro',     'Salazar',    '2005', 'docente5@uts.edu.co', crypt('Clave123', gen_salt('bf')), FALSE),
-    (4, 'Laura',     'Pérez',      '3001', 'est1@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
-    (4, 'Diego',     'Gómez',      '3002', 'est2@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
-    (4, 'Valentina', 'Cruz',       '3003', 'est3@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
-    (4, 'Andrés',    'Rojas',      '3004', 'est4@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
-    (4, 'Camila',    'Torres',     '3005', 'est5@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
-    (4, 'Santiago',  'Díaz',       '3006', 'est6@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
-    (4, 'Natalia',   'Suárez',     '3007', 'est7@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
-    (4, 'Felipe',    'Castro',     '3008', 'est8@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
-    (4, 'Juliana',   'Herrera',    '3009', 'est9@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE);
+    (2, 'Ana María', 'Rueda',      '1098100001', 'comite1@uts.edu.co',  crypt('Clave123', gen_salt('bf')), TRUE),
+    (2, 'Jorge',     'Pinzón',     '1098100002', 'comite2@uts.edu.co',  crypt('Clave123', gen_salt('bf')), TRUE),
+    (3, 'Carlos',    'Méndez',     '1098200001', 'docente1@uts.edu.co', crypt('Clave123', gen_salt('bf')), TRUE),
+    (3, 'Marta',     'Villamizar', '1098200002', 'docente2@uts.edu.co', crypt('Clave123', gen_salt('bf')), TRUE),
+    (3, 'Luis',      'Ardila',     '1098200003', 'docente3@uts.edu.co', crypt('Clave123', gen_salt('bf')), TRUE),
+    (3, 'Sandra',    'Ortiz',      '1098200004', 'docente4@uts.edu.co', crypt('Clave123', gen_salt('bf')), TRUE),
+    (3, 'Pedro',     'Salazar',    '1098200005', 'docente5@uts.edu.co', crypt('Clave123', gen_salt('bf')), FALSE),
+    (4, 'Laura',     'Pérez',      '1098300001', 'est1@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
+    (4, 'Diego',     'Gómez',      '1098300002', 'est2@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
+    (4, 'Valentina', 'Cruz',       '1098300003', 'est3@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
+    (4, 'Andrés',    'Rojas',      '1098300004', 'est4@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
+    (4, 'Camila',    'Torres',     '1098300005', 'est5@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
+    (4, 'Santiago',  'Díaz',       '1098300006', 'est6@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
+    (4, 'Natalia',   'Suárez',     '1098300007', 'est7@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
+    (4, 'Felipe',    'Castro',     '1098300008', 'est8@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE),
+    (4, 'Juliana',   'Herrera',    '1098300009', 'est9@uts.edu.co',     crypt('Clave123', gen_salt('bf')), TRUE);
 
 -- Estudiantes
 INSERT INTO estudiantes (id_usuario, id_programa, semestre, estado_inscripcion, observacion_inscripcion, id_revisor, fecha_revision)
