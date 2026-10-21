@@ -1,0 +1,42 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tabla historial_versiones (cada documento entregado, siempre como URL).
+       listarDeProyecto   entrada: idProyecto                                        salida: historialVersiones
+       siguienteVersion   entrada: idProyecto, tipoDocumento                         salida: siguiente
+       crear              entrada: idProyecto, tipoDocumento, numeroVersion, urlDocumento, idUsuario,
+                                   idVersionRelacionada (solo F-DC-129; vacío en los demás)
+                          salida: versionCreada --%>
+<c:choose>
+    <c:when test="${operacion eq 'listarDeProyecto'}">
+        <sql:query var="historialVersiones" scope="request">
+            SELECT h.id_version, h.tipo_documento, h.version, h.url, h.fecha_entrega, h.id_version_relacionada,
+                   u.nombres || ' ' || u.apellidos AS autor
+            FROM historial_versiones h
+            JOIN usuarios u ON u.id_usuario = h.id_usuario
+            WHERE h.id_proyecto = ?
+            ORDER BY h.fecha_entrega, h.id_version
+            <sql:param value="${idProyecto}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'siguienteVersion'}">
+        <sql:query var="siguiente" scope="request">
+            SELECT COALESCE(MAX(version), 0) + 1 AS numero
+            FROM historial_versiones
+            WHERE id_proyecto = ? AND tipo_documento = ?
+            <sql:param value="${idProyecto}"/>
+            <sql:param value="${tipoDocumento}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'crear'}">
+        <sql:query var="versionCreada" scope="request">
+            INSERT INTO historial_versiones (id_proyecto, tipo_documento, version, url, id_usuario, id_version_relacionada)
+            VALUES (?, ?, ?, ?, ?, ?)
+            RETURNING id_version
+            <sql:param value="${idProyecto}"/>
+            <sql:param value="${tipoDocumento}"/>
+            <sql:param value="${numeroVersion}"/>
+            <sql:param value="${urlDocumento}"/>
+            <sql:param value="${idUsuario}"/>
+            <sql:param value="${idVersionRelacionada}"/>
+        </sql:query>
+    </c:when>
+</c:choose>

@@ -1,0 +1,102 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- VISTA (fragmento): ficha de un proyecto. Recibe ficha, integrantesProyecto, docentesProyecto,
+     historialVersiones y revisionesProyecto. --%>
+<c:set var="f" value="${ficha.rows[0]}"/>
+<c:set var="efFase" value="${f.id_fase}"/>
+<c:set var="efResponsable" value="${f.responsable_actual}"/>
+<c:set var="efEstado" value="${f.estado}"/>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+            <h1 class="h4 mb-1"><c:out value="${f.titulo}"/></h1>
+            <div class="fs-6"><%@ include file="/WEB-INF/vista/plantilla/etiqueta_fase.jspf" %></div>
+        </div>
+        <p class="mb-1"><strong>Fase <c:out value="${f.id_fase}"/>:</strong> <c:out value="${f.fase}"/></p>
+        <p class="small text-muted mb-2"><c:out value="${f.descripcion_fase}"/></p>
+        <c:if test="${not empty f.observacion_cierre}">
+            <div class="alert ${f.estado eq 'RECHAZADO' ? 'alert-danger' : 'alert-success'} py-2 mb-2">
+                <strong>${f.estado eq 'RECHAZADO' ? 'Motivo del rechazo:' : 'Cierre:'}</strong> <c:out value="${f.observacion_cierre}"/>
+            </div>
+        </c:if>
+        <div class="row g-3 small">
+            <div class="col-md-6">
+                <strong>Integrantes</strong>
+                <ul class="mb-0">
+                    <c:forEach var="i" items="${integrantesProyecto.rows}">
+                        <li><c:out value="${i.nombre}"/><c:if test="${i.es_responsable}"> (responsable)</c:if>
+                            &middot; <c:out value="${i.correo}"/></li>
+                    </c:forEach>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <c:set var="nombreDirector" value=""/>
+                <c:set var="nombreEvaluador" value=""/>
+                <c:forEach var="d" items="${docentesProyecto.rows}">
+                    <c:if test="${d.funcion eq 'DIRECTOR'}"><c:set var="nombreDirector" value="${d.nombre} · ${d.correo}"/></c:if>
+                    <c:if test="${d.funcion eq 'EVALUADOR'}"><c:set var="nombreEvaluador" value="${d.nombre} · ${d.correo}"/></c:if>
+                </c:forEach>
+                <strong>Director:</strong> <c:out value="${empty nombreDirector ? 'Pendiente de asignación' : nombreDirector}"/><br>
+                <strong>Evaluador:</strong> <c:out value="${empty nombreEvaluador ? 'Pendiente de asignación' : nombreEvaluador}"/>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h5">Historial de versiones</h2>
+<c:choose>
+    <c:when test="${historialVersiones.rowCount eq 0}">
+        <div class="alert alert-info">Todavía no hay documentos entregados.</div>
+    </c:when>
+    <c:otherwise>
+        <div class="list-group mb-3">
+            <c:forEach var="v" items="${historialVersiones.rows}">
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between flex-wrap gap-2">
+                        <div>
+                            <strong>
+                                <c:choose>
+                                    <c:when test="${v.tipo_documento eq 'SOPORTE_PAGO'}">Soporte de pago</c:when>
+                                    <c:when test="${v.tipo_documento eq 'F-DC-124'}">Anteproyecto (F-DC-124)</c:when>
+                                    <c:when test="${v.tipo_documento eq 'F-DC-125'}">Informe final (F-DC-125)</c:when>
+                                    <c:otherwise>Rejilla de evaluación (F-DC-129)</c:otherwise>
+                                </c:choose>
+                                &middot; versión <c:out value="${v.version}"/>
+                            </strong>
+                            <div class="small text-muted">Entregado por <c:out value="${v.autor}"/> el
+                                <fmt:formatDate value="${v.fecha_entrega}" pattern="dd/MM/yyyy HH:mm"/></div>
+                        </div>
+                        <a class="btn btn-sm btn-outline-success align-self-start" href="<c:out value='${v.url}'/>"
+                           target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> <c:out value="${v.url}"/></a>
+                    </div>
+                    <c:forEach var="r" items="${revisionesProyecto.rows}">
+                        <c:if test="${r.id_version eq v.id_version}">
+                            <div class="border-start border-3 ps-2 mt-2 small">
+                                <strong>
+                                    <c:choose>
+                                        <c:when test="${r.funcion eq 'DIRECTOR'}">Director</c:when>
+                                        <c:when test="${r.funcion eq 'EVALUADOR'}">Evaluador</c:when>
+                                        <c:otherwise>Comité</c:otherwise>
+                                    </c:choose>:
+                                </strong>
+                                <c:out value="${empty r.revisor ? 'Comité' : r.revisor}"/>
+                                <c:choose>
+                                    <c:when test="${r.estado eq 'APROBADO'}"><span class="badge text-bg-success">Aprobado</span></c:when>
+                                    <c:when test="${r.estado eq 'EN_CORRECCIONES'}"><span class="badge text-bg-warning">En correcciones</span></c:when>
+                                    <c:when test="${r.estado eq 'RECHAZADO'}"><span class="badge text-bg-danger">Rechazado</span></c:when>
+                                    <c:otherwise><span class="badge text-bg-secondary">Pendiente de revisión</span></c:otherwise>
+                                </c:choose>
+                                <c:if test="${not empty r.fecha_revision}">
+                                    <span class="text-muted">&middot; <fmt:formatDate value="${r.fecha_revision}" pattern="dd/MM/yyyy HH:mm"/></span>
+                                </c:if>
+                                <c:if test="${not empty r.observaciones}">
+                                    <div class="text-body-secondary">Observaciones: <c:out value="${r.observaciones}"/></div>
+                                </c:if>
+                            </div>
+                        </c:if>
+                    </c:forEach>
+                </div>
+            </c:forEach>
+        </div>
+    </c:otherwise>
+</c:choose>

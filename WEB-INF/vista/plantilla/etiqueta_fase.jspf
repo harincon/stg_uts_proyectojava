@@ -1,0 +1,11 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Etiqueta del estado de un proyecto: "Fase N · Rol", "Finalizado" o "Rechazado".
+     Entrada: efFase, efResponsable (ESTUDIANTE | DIRECTOR | EVALUADOR | COMITE), efEstado --%>
+<c:set var="efRol" value="${efResponsable eq 'ESTUDIANTE' ? 'Estudiante'
+                            : efResponsable eq 'DIRECTOR' ? 'Director'
+                            : efResponsable eq 'EVALUADOR' ? 'Evaluador' : 'Comité'}"/>
+<c:choose>
+    <c:when test="${efEstado eq 'FINALIZADO'}"><span class="badge text-bg-success">Finalizado</span></c:when>
+    <c:when test="${efEstado eq 'RECHAZADO'}"><span class="badge text-bg-danger">Rechazado</span></c:when>
+    <c:otherwise><span class="badge text-bg-primary"><c:out value="Fase ${efFase} · ${efRol}"/></span></c:otherwise>
+</c:choose>

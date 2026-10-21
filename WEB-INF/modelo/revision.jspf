@@ -1,0 +1,80 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tabla revisiones (decisión de director, evaluador o comité sobre una versión).
+       listarDeProyecto   entrada: idProyecto                                  salida: revisionesProyecto
+       crear              entrada: idVersionObjetivo, funcionRevisor, idRevisorAsignado (vacío para el comité)
+       pendienteComite    entrada: idProyecto                                  salida: revisionComite
+       bloquear           entrada: idRevisionObjetivo                          salida: revisionBloqueada
+                          (bloquea la revisión y su proyecto: FOR UPDATE)
+       decidir            entrada: idRevisionObjetivo, estadoNuevo, observaciones, idUsuario
+                          salida: filasActualizadas (solo decide revisiones PENDIENTE_REVISION)
+       estadoPago         entrada: idProyecto                                  salida: estadoPago
+                          (estado de la revisión del comité sobre el último soporte de pago) --%>
+<c:choose>
+    <c:when test="${operacion eq 'listarDeProyecto'}">
+        <sql:query var="revisionesProyecto" scope="request">
+            SELECT r.id_revision, r.id_version, r.funcion, r.estado, r.observaciones,
+                   r.fecha_creacion, r.fecha_revision, u.nombres || ' ' || u.apellidos AS revisor
+            FROM revisiones r
+            JOIN historial_versiones h ON h.id_version = r.id_version
+            LEFT JOIN usuarios u ON u.id_usuario = r.id_usuario
+            WHERE h.id_proyecto = ?
+            ORDER BY r.fecha_creacion, r.id_revision
+            <sql:param value="${idProyecto}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'crear'}">
+        <sql:update>
+            INSERT INTO revisiones (id_version, id_usuario, funcion) VALUES (?, ?, ?)
+            <sql:param value="${idVersionObjetivo}"/>
+            <sql:param value="${idRevisorAsignado}"/>
+            <sql:param value="${funcionRevisor}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'pendienteComite'}">
+        <sql:query var="revisionComite" scope="request">
+            SELECT r.id_revision, h.tipo_documento, h.version, h.url
+            FROM revisiones r
+            JOIN historial_versiones h ON h.id_version = r.id_version
+            WHERE h.id_proyecto = ? AND r.funcion = 'COMITE' AND r.estado = 'PENDIENTE_REVISION'
+            ORDER BY r.fecha_creacion DESC
+            LIMIT 1
+            <sql:param value="${idProyecto}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'bloquear'}">
+        <sql:query var="revisionBloqueada" scope="request">
+            SELECT r.id_revision, r.id_usuario, r.funcion, r.estado, h.id_version, h.tipo_documento,
+                   p.id_proyecto, p.id_fase, p.estado AS estado_proyecto, p.responsable_actual
+            FROM revisiones r
+            JOIN historial_versiones h ON h.id_version = r.id_version
+            JOIN proyectos p ON p.id_proyecto = h.id_proyecto
+            WHERE r.id_revision = ?
+            FOR UPDATE OF r, p
+            <sql:param value="${idRevisionObjetivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'decidir'}">
+        <sql:update var="filasActualizadas" scope="request">
+            UPDATE revisiones
+            SET estado = ?, observaciones = NULLIF(?, ''), id_usuario = ?, fecha_revision = CURRENT_TIMESTAMP
+            WHERE id_revision = ? AND estado = 'PENDIENTE_REVISION'
+            <sql:param value="${estadoNuevo}"/>
+            <sql:param value="${observaciones}"/>
+            <sql:param value="${idUsuario}"/>
+            <sql:param value="${idRevisionObjetivo}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'estadoPago'}">
+        <sql:query var="estadoPago" scope="request">
+            SELECT COALESCE((SELECT r.estado
+                             FROM historial_versiones h
+                             JOIN revisiones r ON r.id_version = h.id_version AND r.funcion = 'COMITE'
+                             WHERE h.id_proyecto = ? AND h.tipo_documento = 'SOPORTE_PAGO'
+                             ORDER BY h.version DESC
+                             LIMIT 1), 'SIN_ENTREGA') AS estado,
+                   (SELECT COUNT(*) FROM asignaciones a WHERE a.id_proyecto = ?) AS docentes
+            <sql:param value="${idProyecto}"/>
+            <sql:param value="${idProyecto}"/>
+        </sql:query>
+    </c:when>
+</c:choose>

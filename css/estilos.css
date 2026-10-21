@@ -43,3 +43,9 @@ main {
     justify-content: center;
     flex-shrink: 0;
 }
+
+.sugerencias {
+    z-index: 10;
+    max-height: 16rem;
+    overflow-y: auto;
+}

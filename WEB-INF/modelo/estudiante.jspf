@@ -9,7 +9,10 @@
        reenviar               entrada: idObjetivo, idProgramaNuevo, semestreNuevo        salida: filasActualizadas
                               (solo si la inscripción está RECHAZADA; queda PENDIENTE)
        decidir                entrada: idEstudianteObjetivo, decision, observacion, idUsuario (revisor)
-                              salida: filasActualizadas (solo decide inscripciones PENDIENTE) --%>
+                              salida: filasActualizadas (solo decide inscripciones PENDIENTE)
+       buscarCompanero        entrada: prefijoIdentificacion, idUsuario                  salida: sugerenciasCompanero
+                              (máximo 5: aprobados, activos, sin proyecto en curso, distintos del usuario)
+       obtenerPorIdentificacion  entrada: identificacionBuscada                          salida: companero --%>
 <c:choose>
     <c:when test="${operacion eq 'inscripcionDeUsuario'}">
         <sql:query var="inscripcion" scope="request">
@@ -85,5 +88,32 @@
             <sql:param value="${idUsuario}"/>
             <sql:param value="${idEstudianteObjetivo}"/>
         </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'buscarCompanero'}">
+        <sql:query var="sugerenciasCompanero" scope="request">
+            SELECT e.id_estudiante, u.nombres || ' ' || u.apellidos AS nombre, u.identificacion,
+                   p.nombre AS programa, e.semestre
+            FROM estudiantes e
+            JOIN usuarios u ON u.id_usuario = e.id_usuario
+            JOIN programas p ON p.id_programa = e.id_programa
+            WHERE u.identificacion LIKE ? || '%'
+              AND e.estado_inscripcion = 'APROBADO' AND u.activo = TRUE AND e.id_usuario <> ?
+              AND NOT EXISTS (SELECT 1 FROM proyecto_estudiantes pe
+                              JOIN proyectos pr ON pr.id_proyecto = pe.id_proyecto
+                              WHERE pe.id_estudiante = e.id_estudiante AND pr.estado = 'EN_CURSO')
+            ORDER BY u.identificacion
+            LIMIT 5
+            <sql:param value="${prefijoIdentificacion}"/>
+            <sql:param value="${idUsuario}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'obtenerPorIdentificacion'}">
+        <sql:query var="companero" scope="request">
+            SELECT e.id_estudiante, e.id_usuario, e.estado_inscripcion, u.activo
+            FROM estudiantes e
+            JOIN usuarios u ON u.id_usuario = e.id_usuario
+            WHERE u.identificacion = ?
+            <sql:param value="${identificacionBuscada}"/>
+        </sql:query>
     </c:when>
 </c:choose>

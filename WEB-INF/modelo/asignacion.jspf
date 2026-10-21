@@ -1,0 +1,48 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tabla asignaciones (director y evaluador de cada proyecto).
+       deProyecto        entrada: idProyecto                                     salida: docentesProyecto
+       docentesActivos                                                           salida: docentesDisponibles
+       contarDocentes    entrada: idDirectorNuevo, idEvaluadorNuevo              salida: docentesValidos
+                         (cuántos de los dos son docentes activos)
+       guardar           entrada: idProyecto, funcionAsignada, idDocenteAsignado
+                         (crea la asignación o reemplaza al docente de esa función) --%>
+<c:choose>
+    <c:when test="${operacion eq 'deProyecto'}">
+        <sql:query var="docentesProyecto" scope="request">
+            SELECT a.funcion, a.id_usuario, u.nombres || ' ' || u.apellidos AS nombre, u.correo
+            FROM asignaciones a
+            JOIN usuarios u ON u.id_usuario = a.id_usuario
+            WHERE a.id_proyecto = ?
+            <sql:param value="${idProyecto}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'docentesActivos'}">
+        <sql:query var="docentesDisponibles" scope="request">
+            SELECT u.id_usuario, u.nombres || ' ' || u.apellidos AS nombre
+            FROM usuarios u
+            JOIN roles r ON r.id_rol = u.id_rol
+            WHERE r.nombre = 'DOCENTE' AND u.activo = TRUE
+            ORDER BY u.apellidos, u.nombres
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'contarDocentes'}">
+        <sql:query var="docentesValidos" scope="request">
+            SELECT COUNT(*) AS total
+            FROM usuarios u
+            JOIN roles r ON r.id_rol = u.id_rol
+            WHERE r.nombre = 'DOCENTE' AND u.activo = TRUE AND u.id_usuario IN (?, ?)
+            <sql:param value="${idDirectorNuevo}"/>
+            <sql:param value="${idEvaluadorNuevo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'guardar'}">
+        <sql:update>
+            INSERT INTO asignaciones (id_proyecto, id_usuario, funcion) VALUES (?, ?, ?)
+            ON CONFLICT (id_proyecto, funcion)
+            DO UPDATE SET id_usuario = EXCLUDED.id_usuario, fecha_asignacion = CURRENT_TIMESTAMP
+            <sql:param value="${idProyecto}"/>
+            <sql:param value="${idDocenteAsignado}"/>
+            <sql:param value="${funcionAsignada}"/>
+        </sql:update>
+    </c:when>
+</c:choose>

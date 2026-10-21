@@ -1,0 +1,187 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: tablas proyectos y proyecto_estudiantes.
+       consultarIdea         entrada: idIdeaObjetivo                       salida: ideaElegida
+       bloquearIdea          entrada: idIdeaObjetivo                       salida: ideaElegida (bloquea la fila: FOR UPDATE)
+       enCursoDeEstudiante   entrada: idEstudianteBuscado                  salida: enCurso
+       crear                 entrada: idIdeaObjetivo                       salida: proyectoCreado
+       agregarIntegrante     entrada: idProyecto, idEstudianteIntegrante, esResponsable ('true' o 'false')
+       deUsuarioEstudiante   entrada: idUsuario                            salida: miProyecto
+       permisoVer            entrada: idProyecto, idUsuario, rolUsuario    salida: permisoFicha
+                             (comité: todos; docente: si está asignado; estudiante: si es integrante)
+       obtenerFicha          entrada: idProyecto                           salida: ficha
+       integrantes           entrada: idProyecto                           salida: integrantesProyecto
+       bloquear              entrada: idProyecto                           salida: proyectoBloqueado (FOR UPDATE)
+       integranteActual      entrada: idProyecto, idUsuario                salida: integranteActual
+       actualizarTurno       entrada: idProyecto, faseNueva, responsableNuevo
+       conteoFase1                                                         salida: conteoFase1
+                             (soportes de pago pendientes y proyectos en fase 1 sin los dos docentes)
+       listarParaComite      entrada: filtroFase, filtroEstado, filtroResponsable   salida: listaProyectos --%>
+<c:choose>
+    <c:when test="${operacion eq 'consultarIdea' or operacion eq 'bloquearIdea'}">
+        <sql:query var="ideaElegida" scope="request">
+            SELECT i.id_idea, i.titulo, i.objetivo, i.problematica, i.estado, i.id_autor,
+                   u.nombres || ' ' || u.apellidos AS autor, r.nombre AS tipo_autor,
+                   NOT EXISTS (SELECT 1 FROM proyectos p
+                               WHERE p.id_idea = i.id_idea AND p.estado <> 'RECHAZADO') AS disponible
+            FROM ideas i
+            JOIN usuarios u ON u.id_usuario = i.id_autor
+            JOIN roles r ON r.id_rol = u.id_rol
+            WHERE i.id_idea = ?
+            ${operacion eq 'bloquearIdea' ? 'FOR UPDATE OF i' : ''}
+            <sql:param value="${idIdeaObjetivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'enCursoDeEstudiante'}">
+        <sql:query var="enCurso" scope="request">
+            SELECT COUNT(*) AS total
+            FROM proyecto_estudiantes pe
+            JOIN proyectos p ON p.id_proyecto = pe.id_proyecto
+            WHERE pe.id_estudiante = ? AND p.estado = 'EN_CURSO'
+            <sql:param value="${idEstudianteBuscado}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'crear'}">
+        <sql:query var="proyectoCreado" scope="request">
+            INSERT INTO proyectos (id_idea) VALUES (?) RETURNING id_proyecto
+            <sql:param value="${idIdeaObjetivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'agregarIntegrante'}">
+        <sql:update>
+            INSERT INTO proyecto_estudiantes (id_proyecto, id_estudiante, es_responsable)
+            VALUES (?, ?, CAST(? AS BOOLEAN))
+            <sql:param value="${idProyecto}"/>
+            <sql:param value="${idEstudianteIntegrante}"/>
+            <sql:param value="${esResponsable}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'deUsuarioEstudiante'}">
+        <sql:query var="miProyecto" scope="request">
+            SELECT p.id_proyecto, p.id_fase, p.estado, p.responsable_actual, p.observacion_cierre,
+                   f.nombre AS fase, i.titulo, pe.es_responsable,
+                   (SELECT u2.nombres || ' ' || u2.apellidos
+                    FROM proyecto_estudiantes pe2
+                    JOIN estudiantes e2 ON e2.id_estudiante = pe2.id_estudiante
+                    JOIN usuarios u2 ON u2.id_usuario = e2.id_usuario
+                    WHERE pe2.id_proyecto = p.id_proyecto AND pe2.es_responsable) AS responsable
+            FROM proyecto_estudiantes pe
+            JOIN estudiantes e ON e.id_estudiante = pe.id_estudiante
+            JOIN proyectos p ON p.id_proyecto = pe.id_proyecto
+            JOIN fases f ON f.id_fase = p.id_fase
+            JOIN ideas i ON i.id_idea = p.id_idea
+            WHERE e.id_usuario = ?
+            ORDER BY (p.estado = 'EN_CURSO') DESC, p.fecha_inicio DESC
+            LIMIT 1
+            <sql:param value="${idUsuario}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'permisoVer'}">
+        <sql:query var="permisoFicha" scope="request">
+            SELECT COUNT(*) AS total
+            FROM proyectos p
+            WHERE p.id_proyecto = ?
+              AND (? = 'COMITE'
+                   OR (? = 'DOCENTE' AND EXISTS (SELECT 1 FROM asignaciones a
+                                                  WHERE a.id_proyecto = p.id_proyecto AND a.id_usuario = ?))
+                   OR (? = 'ESTUDIANTE' AND EXISTS (SELECT 1 FROM proyecto_estudiantes pe
+                                                     JOIN estudiantes e ON e.id_estudiante = pe.id_estudiante
+                                                     WHERE pe.id_proyecto = p.id_proyecto AND e.id_usuario = ?)))
+            <sql:param value="${idProyecto}"/>
+            <sql:param value="${rolUsuario}"/>
+            <sql:param value="${rolUsuario}"/>
+            <sql:param value="${idUsuario}"/>
+            <sql:param value="${rolUsuario}"/>
+            <sql:param value="${idUsuario}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'obtenerFicha'}">
+        <sql:query var="ficha" scope="request">
+            SELECT p.id_proyecto, p.id_fase, p.estado, p.responsable_actual, p.fecha_inicio, p.fecha_fin,
+                   p.observacion_cierre, f.nombre AS fase, f.descripcion AS descripcion_fase,
+                   i.titulo, i.objetivo, i.problematica
+            FROM proyectos p
+            JOIN fases f ON f.id_fase = p.id_fase
+            JOIN ideas i ON i.id_idea = p.id_idea
+            WHERE p.id_proyecto = ?
+            <sql:param value="${idProyecto}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'integrantes'}">
+        <sql:query var="integrantesProyecto" scope="request">
+            SELECT u.id_usuario, u.nombres || ' ' || u.apellidos AS nombre, u.correo, pe.es_responsable
+            FROM proyecto_estudiantes pe
+            JOIN estudiantes e ON e.id_estudiante = pe.id_estudiante
+            JOIN usuarios u ON u.id_usuario = e.id_usuario
+            WHERE pe.id_proyecto = ?
+            ORDER BY pe.es_responsable DESC, u.apellidos
+            <sql:param value="${idProyecto}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'bloquear'}">
+        <sql:query var="proyectoBloqueado" scope="request">
+            SELECT id_proyecto, id_fase, estado, responsable_actual
+            FROM proyectos
+            WHERE id_proyecto = ?
+            FOR UPDATE
+            <sql:param value="${idProyecto}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'integranteActual'}">
+        <sql:query var="integranteActual" scope="request">
+            SELECT pe.es_responsable
+            FROM proyecto_estudiantes pe
+            JOIN estudiantes e ON e.id_estudiante = pe.id_estudiante
+            WHERE pe.id_proyecto = ? AND e.id_usuario = ?
+            <sql:param value="${idProyecto}"/>
+            <sql:param value="${idUsuario}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'actualizarTurno'}">
+        <sql:update>
+            UPDATE proyectos SET id_fase = ?, responsable_actual = ? WHERE id_proyecto = ?
+            <sql:param value="${faseNueva}"/>
+            <sql:param value="${responsableNuevo}"/>
+            <sql:param value="${idProyecto}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'conteoFase1'}">
+        <sql:query var="conteoFase1" scope="request">
+            SELECT (SELECT COUNT(*)
+                    FROM revisiones r
+                    JOIN historial_versiones h ON h.id_version = r.id_version
+                    JOIN proyectos p ON p.id_proyecto = h.id_proyecto
+                    WHERE r.funcion = 'COMITE' AND r.estado = 'PENDIENTE_REVISION'
+                      AND h.tipo_documento = 'SOPORTE_PAGO' AND p.estado = 'EN_CURSO') AS pagos_pendientes,
+                   (SELECT COUNT(*)
+                    FROM proyectos p
+                    WHERE p.estado = 'EN_CURSO' AND p.id_fase = 1
+                      AND (SELECT COUNT(*) FROM asignaciones a WHERE a.id_proyecto = p.id_proyecto) < 2) AS sin_docentes
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'listarParaComite'}">
+        <sql:query var="listaProyectos" scope="request">
+            SELECT p.id_proyecto, p.id_fase, p.estado, p.responsable_actual, i.titulo,
+                   (SELECT string_agg(u.nombres || ' ' || u.apellidos, ', ' ORDER BY pe.es_responsable DESC)
+                    FROM proyecto_estudiantes pe
+                    JOIN estudiantes e ON e.id_estudiante = pe.id_estudiante
+                    JOIN usuarios u ON u.id_usuario = e.id_usuario
+                    WHERE pe.id_proyecto = p.id_proyecto) AS estudiantes,
+                   (SELECT u.nombres || ' ' || u.apellidos FROM asignaciones a JOIN usuarios u ON u.id_usuario = a.id_usuario
+                    WHERE a.id_proyecto = p.id_proyecto AND a.funcion = 'DIRECTOR') AS director,
+                   (SELECT u.nombres || ' ' || u.apellidos FROM asignaciones a JOIN usuarios u ON u.id_usuario = a.id_usuario
+                    WHERE a.id_proyecto = p.id_proyecto AND a.funcion = 'EVALUADOR') AS evaluador
+            FROM proyectos p
+            JOIN ideas i ON i.id_idea = p.id_idea
+            WHERE (COALESCE(?, '') = '' OR CAST(p.id_fase AS TEXT) = ?)
+              AND (COALESCE(?, '') = '' OR p.estado = ?)
+              AND (COALESCE(?, '') = '' OR p.responsable_actual = ?)
+            ORDER BY p.estado, p.id_fase, i.titulo
+            <sql:param value="${filtroFase}"/>
+            <sql:param value="${filtroFase}"/>
+            <sql:param value="${filtroEstado}"/>
+            <sql:param value="${filtroEstado}"/>
+            <sql:param value="${filtroResponsable}"/>
+            <sql:param value="${filtroResponsable}"/>
+        </sql:query>
+    </c:when>
+</c:choose>

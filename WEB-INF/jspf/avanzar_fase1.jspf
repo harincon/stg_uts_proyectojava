@@ -1,0 +1,23 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- TRANSICIÓN T4 (la usa proyecto_accion.jsp dentro de su transacción).
+     Si el último soporte de pago está aprobado y hay director y evaluador, el proyecto pasa a la fase 2
+     con turno del estudiante. Si no, sigue en la fase 1: turno del comité si el pago está aprobado o por
+     revisar; turno del estudiante si falta entregarlo o corregirlo.
+     Entrada: idProyecto        Salida: avanzoFase (true si pasó a la fase 2) --%>
+<c:set var="operacion" value="estadoPago"/>
+<%@ include file="/WEB-INF/modelo/revision.jspf" %>
+<c:set var="pago" value="${estadoPago.rows[0]}"/>
+<c:choose>
+    <c:when test="${pago.estado eq 'APROBADO' and pago.docentes ge 2}">
+        <c:set var="faseNueva" value="${2}"/>
+        <c:set var="responsableNuevo" value="ESTUDIANTE"/>
+        <c:set var="avanzoFase" value="${true}"/>
+    </c:when>
+    <c:otherwise>
+        <c:set var="faseNueva" value="${1}"/>
+        <c:set var="responsableNuevo" value="${pago.estado eq 'APROBADO' or pago.estado eq 'PENDIENTE_REVISION' ? 'COMITE' : 'ESTUDIANTE'}"/>
+        <c:set var="avanzoFase" value="${false}"/>
+    </c:otherwise>
+</c:choose>
+<c:set var="operacion" value="actualizarTurno"/>
+<%@ include file="/WEB-INF/modelo/proyecto.jspf" %>

@@ -1,0 +1,22 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- CARGA DE LA FICHA de un proyecto (la usan los controladores que muestran la ficha).
+     Entrada: idProyecto
+     Salida (request): ficha, integrantesProyecto, docentesProyecto, historialVersiones, revisionesProyecto,
+                       esResponsable (true si el usuario de la sesión es el estudiante responsable) --%>
+<c:set var="operacion" value="obtenerFicha"/>
+<%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+<c:set var="operacion" value="integrantes"/>
+<%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+<c:set var="operacion" value="deProyecto"/>
+<%@ include file="/WEB-INF/modelo/asignacion.jspf" %>
+<c:set var="operacion" value="listarDeProyecto"/>
+<%@ include file="/WEB-INF/modelo/version.jspf" %>
+<c:set var="operacion" value="listarDeProyecto"/>
+<%@ include file="/WEB-INF/modelo/revision.jspf" %>
+
+<c:set var="esResponsable" value="${false}" scope="request"/>
+<c:forEach var="integrante" items="${integrantesProyecto.rows}">
+    <c:if test="${integrante.es_responsable and integrante.id_usuario eq sessionScope.usuario.id_usuario}">
+        <c:set var="esResponsable" value="${true}" scope="request"/>
+    </c:if>
+</c:forEach>
