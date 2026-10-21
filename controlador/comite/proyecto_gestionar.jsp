@@ -17,6 +17,11 @@
 
 <c:set var="operacion" value="pendienteComite"/>
 <%@ include file="/WEB-INF/modelo/revision.jspf" %>
+<c:if test="${revisionComite.rowCount gt 0 and revisionComite.rows[0].tipo_documento eq 'F-DC-125'}">
+    <c:set var="operacion" value="rejillaDe"/>
+    <c:set var="idVersionObjetivo" value="${revisionComite.rows[0].id_version}"/>
+    <%@ include file="/WEB-INF/modelo/version.jspf" %>
+</c:if>
 <c:if test="${ficha.rows[0].id_fase eq 1 and ficha.rows[0].estado eq 'EN_CURSO'}">
     <c:set var="operacion" value="docentesActivos"/>
     <%@ include file="/WEB-INF/modelo/asignacion.jspf" %>

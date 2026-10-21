@@ -35,7 +35,7 @@
     </c:when>
     <c:when test="${operacion eq 'pendienteComite'}">
         <sql:query var="revisionComite" scope="request">
-            SELECT r.id_revision, h.tipo_documento, h.version, h.url
+            SELECT r.id_revision, h.id_version, h.tipo_documento, h.version, h.url
             FROM revisiones r
             JOIN historial_versiones h ON h.id_version = r.id_version
             WHERE h.id_proyecto = ? AND r.funcion = 'COMITE' AND r.estado = 'PENDIENTE_REVISION'

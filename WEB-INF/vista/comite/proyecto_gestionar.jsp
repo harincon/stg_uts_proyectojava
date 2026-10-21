@@ -23,8 +23,18 @@
                             <c:otherwise>Aprobar informe final</c:otherwise>
                         </c:choose>
                     </h2>
-                    <p class="small">Versión <c:out value="${rc.version}"/>:
+                    <p class="small mb-1">Versión <c:out value="${rc.version}"/>:
                         <a href="<c:out value='${rc.url}'/>" target="_blank" rel="noopener">abrir documento</a></p>
+                    <c:if test="${rc.tipo_documento eq 'F-DC-125'}">
+                        <p class="small">Rejilla F-DC-129:
+                            <c:choose>
+                                <c:when test="${rejilla.rowCount gt 0}">
+                                    <a href="<c:out value='${rejilla.rows[0].url}'/>" target="_blank" rel="noopener"><c:out value="${rejilla.rows[0].url}"/></a>
+                                </c:when>
+                                <c:otherwise><span class="text-danger">no registrada</span></c:otherwise>
+                            </c:choose>
+                        </p>
+                    </c:if>
                     <form method="post" action="<c:url value='/controlador/comite/proyecto_accion.jsp'/>" class="mb-2">
                         <input type="hidden" name="accion" value="decidir_revision">
                         <input type="hidden" name="id_proyecto" value="${g.id_proyecto}">

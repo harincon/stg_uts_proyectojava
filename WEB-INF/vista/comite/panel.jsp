@@ -61,6 +61,18 @@
             </div>
         </a>
     </div>
+    <c:url var="urlInformesComite" value="/controlador/comite/proyectos.jsp">
+        <c:param name="fase" value="5"/><c:param name="responsable" value="COMITE"/>
+    </c:url>
+    <div class="col-sm-6 col-lg-4">
+        <a class="card shadow-sm h-100 text-decoration-none" href="${urlInformesComite}">
+            <div class="card-body">
+                <div class="text-muted small">Informes finales por aprobar</div>
+                <div class="display-6 fw-bold text-success"><c:out value="${conteoComite.rows[0].informes}"/></div>
+                <div class="small">Revisar con la rejilla F-DC-129 &raquo;</div>
+            </div>
+        </a>
+    </div>
 </div>
 
 <%@ include file="/WEB-INF/vista/plantilla/pie.jspf" %>

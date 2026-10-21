@@ -5,7 +5,8 @@
        crear              entrada: idProyecto, tipoDocumento, numeroVersion, urlDocumento, idUsuario,
                                    idVersionRelacionada (solo F-DC-129; vacío en los demás)
                           salida: versionCreada
-       rejillaDe          entrada: idVersionObjetivo (versión del F-DC-125)          salida: rejilla --%>
+       rejillaDe          entrada: idVersionObjetivo (versión del F-DC-125)          salida: rejilla
+       ultimaDeTipo       entrada: idProyecto, tipoDocumento                         salida: ultimaVersion --%>
 <c:choose>
     <c:when test="${operacion eq 'listarDeProyecto'}">
         <sql:query var="historialVersiones" scope="request">
@@ -47,6 +48,17 @@
             WHERE tipo_documento = 'F-DC-129' AND id_version_relacionada = ?
             ORDER BY version DESC
             <sql:param value="${idVersionObjetivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'ultimaDeTipo'}">
+        <sql:query var="ultimaVersion" scope="request">
+            SELECT id_version, version
+            FROM historial_versiones
+            WHERE id_proyecto = ? AND tipo_documento = ?
+            ORDER BY version DESC
+            LIMIT 1
+            <sql:param value="${idProyecto}"/>
+            <sql:param value="${tipoDocumento}"/>
         </sql:query>
     </c:when>
 </c:choose>

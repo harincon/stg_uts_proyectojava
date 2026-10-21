@@ -20,6 +20,38 @@
     </div>
 </div>
 
+<c:if test="${rv.funcion eq 'EVALUADOR' and rv.tipo_documento eq 'F-DC-125'}">
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <h2 class="h5">Rejilla de evaluación F-DC-129</h2>
+            <c:choose>
+                <c:when test="${rejilla.rowCount gt 0}">
+                    <p class="mb-2"><span class="badge text-bg-success">Registrada</span>
+                        versión <c:out value="${rejilla.rows[0].version}"/>:
+                        <a href="<c:out value='${rejilla.rows[0].url}'/>" target="_blank" rel="noopener"><c:out value="${rejilla.rows[0].url}"/></a></p>
+                </c:when>
+                <c:otherwise>
+                    <p class="mb-2 text-danger small">Todavía no ha registrado la rejilla de esta versión del informe.
+                        Es obligatoria para aprobar.</p>
+                </c:otherwise>
+            </c:choose>
+            <c:if test="${enTurno}">
+                <form class="row g-2" method="post" action="<c:url value='/controlador/docente/rejilla_guardar.jsp'/>">
+                    <input type="hidden" name="id_proyecto" value="${rv.id_proyecto}">
+                    <input type="hidden" name="id_revision" value="${rv.id_revision}">
+                    <div class="col-md-9">
+                        <input type="url" class="form-control" name="url" required maxlength="500" placeholder="https://…"
+                               aria-label="URL de la rejilla F-DC-129">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-outline-success w-100">Registrar rejilla F-DC-129</button>
+                    </div>
+                </form>
+            </c:if>
+        </div>
+    </div>
+</c:if>
+
 <c:choose>
     <c:when test="${not enTurno}">
         <div class="alert alert-info">Esta revisión ya fue resuelta o no es su turno de revisar.</div>
