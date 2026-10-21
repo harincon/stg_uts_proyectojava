@@ -15,7 +15,8 @@
        actualizarTurno       entrada: idProyecto, faseNueva, responsableNuevo
        conteoFase1                                                         salida: conteoFase1
                              (soportes de pago pendientes y proyectos en fase 1 sin los dos docentes)
-       listarParaComite      entrada: filtroFase, filtroEstado, filtroResponsable   salida: listaProyectos --%>
+       listarParaComite      entrada: filtroFase, filtroEstado, filtroResponsable   salida: listaProyectos
+       terminar              entrada: idProyecto, estadoFinal (FINALIZADO | RECHAZADO), observacionCierre --%>
 <c:choose>
     <c:when test="${operacion eq 'consultarIdea' or operacion eq 'bloquearIdea'}">
         <sql:query var="ideaElegida" scope="request">
@@ -183,5 +184,15 @@
             <sql:param value="${filtroResponsable}"/>
             <sql:param value="${filtroResponsable}"/>
         </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'terminar'}">
+        <sql:update>
+            UPDATE proyectos
+            SET estado = ?, responsable_actual = NULL, fecha_fin = CURRENT_TIMESTAMP, observacion_cierre = NULLIF(?, '')
+            WHERE id_proyecto = ?
+            <sql:param value="${estadoFinal}"/>
+            <sql:param value="${observacionCierre}"/>
+            <sql:param value="${idProyecto}"/>
+        </sql:update>
     </c:when>
 </c:choose>

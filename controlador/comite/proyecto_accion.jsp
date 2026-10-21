@@ -46,19 +46,24 @@
                     <c:when test="${estadoNuevo ne 'APROBADO' and estadoNuevo ne 'EN_CORRECCIONES' and estadoNuevo ne 'RECHAZADO'}">
                         <c:set var="error" value="Decisión no válida."/>
                     </c:when>
-                    <c:when test="${estadoNuevo ne 'APROBADO' and empty observaciones}">
-                        <c:set var="error" value="Escriba las observaciones."/>
-                    </c:when>
                     <c:when test="${rb.tipo_documento eq 'SOPORTE_PAGO' and estadoNuevo eq 'RECHAZADO'}">
                         <c:set var="error" value="El soporte de pago no se puede rechazar; solicite correcciones."/>
                     </c:when>
-                    <c:when test="${rb.tipo_documento ne 'SOPORTE_PAGO'}">
-                        <c:set var="error" value="Esta revisión se gestiona en una etapa posterior."/>
+                    <c:when test="${estadoNuevo eq 'RECHAZADO' and param.confirmar ne 'SI'}">
+                        <c:set var="error" value="Confirme el rechazo definitivo."/>
+                    </c:when>
+                    <c:when test="${estadoNuevo ne 'APROBADO' and empty observaciones}">
+                        <c:set var="error" value="Escriba las observaciones."/>
                     </c:when>
                     <c:otherwise>
                         <c:set var="operacion" value="decidir"/>
                         <%@ include file="/WEB-INF/modelo/revision.jspf" %>
                         <c:choose>
+                            <c:when test="${rb.tipo_documento ne 'SOPORTE_PAGO'}">
+                                <%-- Anteproyecto o informe final: transiciones T9, T10, T16, T17 o T18 --%>
+                                <%@ include file="/WEB-INF/jspf/aplicar_decision.jspf" %>
+                                <c:set var="mensaje" value="${mensajeTransicion}"/>
+                            </c:when>
                             <c:when test="${estadoNuevo eq 'EN_CORRECCIONES'}">
                                 <c:set var="operacion" value="actualizarTurno"/>
                                 <c:set var="faseNueva" value="${1}"/>

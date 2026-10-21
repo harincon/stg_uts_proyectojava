@@ -1,0 +1,51 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- VISTA (fragmento): proyectos del docente en una función. Recibe proyectosDocente y filtro.
+     Entrada: nombreApartado ("director" o "evaluador"), rutaApartado, otroDocente ("Evaluador" o "Director") --%>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div class="btn-group" role="group" aria-label="Filtro">
+        <c:url var="urlPendientes" value="${rutaApartado}"><c:param name="filtro" value="pendientes"/></c:url>
+        <c:url var="urlTodos" value="${rutaApartado}"><c:param name="filtro" value="todos"/></c:url>
+        <a class="btn btn-sm ${filtro eq 'pendientes' ? 'btn-success' : 'btn-outline-success'}" href="${urlPendientes}">Pendientes de mi revisión</a>
+        <a class="btn btn-sm ${filtro eq 'todos' ? 'btn-success' : 'btn-outline-success'}" href="${urlTodos}">Todos</a>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table align-middle bg-white">
+        <thead class="table-light">
+            <tr><th>Título</th><th>Estudiantes</th><th><c:out value="${otroDocente}"/></th><th>Situación</th><th class="text-end">Acción</th></tr>
+        </thead>
+        <tbody>
+            <c:if test="${proyectosDocente.rowCount eq 0}">
+                <tr><td colspan="5" class="text-center text-muted">No hay proyectos para mostrar.</td></tr>
+            </c:if>
+            <c:forEach var="p" items="${proyectosDocente.rows}">
+                <c:set var="efFase" value="${p.id_fase}"/>
+                <c:set var="efResponsable" value="${p.responsable_actual}"/>
+                <c:set var="efEstado" value="${p.estado}"/>
+                <tr class="${p.requiere_accion ? 'table-warning' : ''}">
+                    <td><c:out value="${p.titulo}"/></td>
+                    <td><c:out value="${p.estudiantes}"/></td>
+                    <td><c:out value="${empty p.otro_docente ? 'Pendiente' : p.otro_docente}"/></td>
+                    <td><%@ include file="/WEB-INF/vista/plantilla/etiqueta_fase.jspf" %></td>
+                    <td class="text-end text-nowrap">
+                        <c:choose>
+                            <c:when test="${p.requiere_accion and not empty p.id_revision_pendiente}">
+                                <c:url var="urlRevisar" value="/controlador/docente/revisar.jsp">
+                                    <c:param name="id_revision" value="${p.id_revision_pendiente}"/>
+                                </c:url>
+                                <a class="btn btn-sm btn-success" href="${urlRevisar}"><i class="bi bi-pencil-square"></i> Gestionar</a>
+                            </c:when>
+                            <c:otherwise>
+                                <c:url var="urlVer" value="/controlador/comun/proyecto.jsp">
+                                    <c:param name="id_proyecto" value="${p.id_proyecto}"/>
+                                </c:url>
+                                <a class="btn btn-sm btn-outline-secondary" href="${urlVer}"><i class="bi bi-eye"></i> Ver</a>
+                            </c:otherwise>
+                        </c:choose>
+                    </td>
+                </tr>
+            </c:forEach>
+        </tbody>
+    </table>
+</div>

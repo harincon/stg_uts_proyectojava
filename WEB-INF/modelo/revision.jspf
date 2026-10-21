@@ -8,7 +8,10 @@
        decidir            entrada: idRevisionObjetivo, estadoNuevo, observaciones, idUsuario
                           salida: filasActualizadas (solo decide revisiones PENDIENTE_REVISION)
        estadoPago         entrada: idProyecto                                  salida: estadoPago
-                          (estado de la revisión del comité sobre el último soporte de pago) --%>
+                          (estado de la revisión del comité sobre el último soporte de pago)
+       obtener            entrada: idRevisionObjetivo                          salida: revisionDocente
+       conteoComite                                                            salida: conteoComite
+                          (anteproyectos e informes finales que esperan la decisión del comité) --%>
 <c:choose>
     <c:when test="${operacion eq 'listarDeProyecto'}">
         <sql:query var="revisionesProyecto" scope="request">
@@ -75,6 +78,26 @@
                    (SELECT COUNT(*) FROM asignaciones a WHERE a.id_proyecto = ?) AS docentes
             <sql:param value="${idProyecto}"/>
             <sql:param value="${idProyecto}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'obtener'}">
+        <sql:query var="revisionDocente" scope="request">
+            SELECT r.id_revision, r.id_usuario, r.funcion, r.estado, h.id_version, h.tipo_documento,
+                   h.version, h.url, h.id_proyecto
+            FROM revisiones r
+            JOIN historial_versiones h ON h.id_version = r.id_version
+            WHERE r.id_revision = ?
+            <sql:param value="${idRevisionObjetivo}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'conteoComite'}">
+        <sql:query var="conteoComite" scope="request">
+            SELECT COALESCE(SUM(CASE WHEN h.tipo_documento = 'F-DC-124' THEN 1 ELSE 0 END), 0) AS anteproyectos,
+                   COALESCE(SUM(CASE WHEN h.tipo_documento = 'F-DC-125' THEN 1 ELSE 0 END), 0) AS informes
+            FROM revisiones r
+            JOIN historial_versiones h ON h.id_version = r.id_version
+            JOIN proyectos p ON p.id_proyecto = h.id_proyecto
+            WHERE r.funcion = 'COMITE' AND r.estado = 'PENDIENTE_REVISION' AND p.estado = 'EN_CURSO'
         </sql:query>
     </c:when>
 </c:choose>

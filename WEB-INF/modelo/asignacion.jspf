@@ -5,7 +5,10 @@
        contarDocentes    entrada: idDirectorNuevo, idEvaluadorNuevo              salida: docentesValidos
                          (cuántos de los dos son docentes activos)
        guardar           entrada: idProyecto, funcionAsignada, idDocenteAsignado
-                         (crea la asignación o reemplaza al docente de esa función) --%>
+                         (crea la asignación o reemplaza al docente de esa función)
+       resumenDocente    entrada: idUsuario                                      salida: resumenDocente
+       proyectosDeDocente  entrada: idUsuario, funcionAsignada, soloPendientes ('true' o 'false')
+                           salida: proyectosDocente --%>
 <c:choose>
     <c:when test="${operacion eq 'deProyecto'}">
         <sql:query var="docentesProyecto" scope="request">
@@ -44,5 +47,47 @@
             <sql:param value="${idDocenteAsignado}"/>
             <sql:param value="${funcionAsignada}"/>
         </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'resumenDocente'}">
+        <sql:query var="resumenDocente" scope="request">
+            SELECT COALESCE(SUM(CASE WHEN a.funcion = 'DIRECTOR' THEN 1 ELSE 0 END), 0) AS dirige,
+                   COALESCE(SUM(CASE WHEN a.funcion = 'DIRECTOR' AND p.estado = 'EN_CURSO'
+                                     AND p.responsable_actual = 'DIRECTOR' THEN 1 ELSE 0 END), 0) AS director_pendientes,
+                   COALESCE(SUM(CASE WHEN a.funcion = 'EVALUADOR' THEN 1 ELSE 0 END), 0) AS evalua,
+                   COALESCE(SUM(CASE WHEN a.funcion = 'EVALUADOR' AND p.estado = 'EN_CURSO'
+                                     AND p.responsable_actual = 'EVALUADOR' THEN 1 ELSE 0 END), 0) AS evaluador_pendientes
+            FROM asignaciones a
+            JOIN proyectos p ON p.id_proyecto = a.id_proyecto
+            WHERE a.id_usuario = ?
+            <sql:param value="${idUsuario}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'proyectosDeDocente'}">
+        <sql:query var="proyectosDocente" scope="request">
+            SELECT p.id_proyecto, p.id_fase, p.estado, p.responsable_actual, i.titulo,
+                   (p.estado = 'EN_CURSO' AND p.responsable_actual = a.funcion) AS requiere_accion,
+                   (SELECT string_agg(u.nombres || ' ' || u.apellidos, ', ' ORDER BY pe.es_responsable DESC)
+                    FROM proyecto_estudiantes pe
+                    JOIN estudiantes e ON e.id_estudiante = pe.id_estudiante
+                    JOIN usuarios u ON u.id_usuario = e.id_usuario
+                    WHERE pe.id_proyecto = p.id_proyecto) AS estudiantes,
+                   (SELECT u.nombres || ' ' || u.apellidos
+                    FROM asignaciones a2 JOIN usuarios u ON u.id_usuario = a2.id_usuario
+                    WHERE a2.id_proyecto = p.id_proyecto AND a2.funcion <> a.funcion) AS otro_docente,
+                   (SELECT r.id_revision
+                    FROM revisiones r JOIN historial_versiones h ON h.id_version = r.id_version
+                    WHERE h.id_proyecto = p.id_proyecto AND r.funcion = a.funcion
+                      AND r.id_usuario = a.id_usuario AND r.estado = 'PENDIENTE_REVISION'
+                    ORDER BY r.id_revision DESC LIMIT 1) AS id_revision_pendiente
+            FROM asignaciones a
+            JOIN proyectos p ON p.id_proyecto = a.id_proyecto
+            JOIN ideas i ON i.id_idea = p.id_idea
+            WHERE a.id_usuario = ? AND a.funcion = ?
+              AND (CAST(? AS BOOLEAN) = FALSE OR (p.estado = 'EN_CURSO' AND p.responsable_actual = a.funcion))
+            ORDER BY requiere_accion DESC, (p.estado = 'EN_CURSO') DESC, p.fecha_inicio
+            <sql:param value="${idUsuario}"/>
+            <sql:param value="${funcionAsignada}"/>
+            <sql:param value="${soloPendientes}"/>
+        </sql:query>
     </c:when>
 </c:choose>

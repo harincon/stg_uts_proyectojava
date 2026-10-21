@@ -1,6 +1,6 @@
 <%@ page pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/jspf/taglibs.jspf" %>
-<%-- VISTA: panel del comité. Recibe pendientes (inscripciones) e ideasPendientes. --%>
+<%-- VISTA: panel del comité. Recibe pendientes (inscripciones), ideasPendientes, conteoFase1 y conteoComite. --%>
 <c:set var="tituloPagina" value="Panel del comité"/>
 <%@ include file="/WEB-INF/vista/plantilla/cabecera.jspf" %>
 
@@ -46,6 +46,18 @@
                 <div class="text-muted small">Proyectos sin director o evaluador</div>
                 <div class="display-6 fw-bold text-success"><c:out value="${conteoFase1.rows[0].sin_docentes}"/></div>
                 <div class="small">Asignar docentes &raquo;</div>
+            </div>
+        </a>
+    </div>
+    <c:url var="urlTurnoComite" value="/controlador/comite/proyectos.jsp">
+        <c:param name="fase" value="3"/><c:param name="responsable" value="COMITE"/>
+    </c:url>
+    <div class="col-sm-6 col-lg-4">
+        <a class="card shadow-sm h-100 text-decoration-none" href="${urlTurnoComite}">
+            <div class="card-body">
+                <div class="text-muted small">Anteproyectos por aprobar</div>
+                <div class="display-6 fw-bold text-success"><c:out value="${conteoComite.rows[0].anteproyectos}"/></div>
+                <div class="small">Decidir después del evaluador &raquo;</div>
             </div>
         </a>
     </div>

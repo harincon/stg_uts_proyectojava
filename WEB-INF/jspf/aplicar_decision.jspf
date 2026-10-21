@@ -1,0 +1,65 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- TRANSICIONES después de decidir una revisión del anteproyecto (F-DC-124) o del informe final (F-DC-125).
+     La usan revision_guardar.jsp (docentes) y proyecto_accion.jsp (comité), dentro de su transacción y
+     después de guardar la decisión.
+       RECHAZADO        → el proyecto termina como RECHAZADO (T18)
+       EN_CORRECCIONES  → vuelve al estudiante: fase 2 (anteproyecto) o fase 4 (informe final) (T7, T10, T13, T17)
+       APROBADO         → director: pasa al evaluador en la fase siguiente (T6, T12)
+                          evaluador: pasa al comité (T8, T15)
+                          comité: anteproyecto → fase 4 estudiante (T9); informe final → fase 6 comité (T16)
+     Entrada: rb (fila de revisionBloqueada), estadoNuevo, observaciones
+     Salida:  mensajeTransicion --%>
+<c:set var="idProyecto" value="${rb.id_proyecto}"/>
+<c:set var="esAnteproyecto" value="${rb.tipo_documento eq 'F-DC-124'}"/>
+<c:choose>
+    <c:when test="${estadoNuevo eq 'RECHAZADO'}">
+        <c:set var="operacion" value="terminar"/>
+        <c:set var="estadoFinal" value="RECHAZADO"/>
+        <c:set var="observacionCierre" value="${observaciones}"/>
+        <%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+        <c:set var="mensajeTransicion" value="Proyecto rechazado definitivamente."/>
+    </c:when>
+    <c:when test="${estadoNuevo eq 'EN_CORRECCIONES'}">
+        <c:set var="faseNueva" value="${esAnteproyecto ? 2 : 4}"/>
+        <c:set var="responsableNuevo" value="ESTUDIANTE"/>
+        <c:set var="operacion" value="actualizarTurno"/>
+        <%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+        <c:set var="mensajeTransicion" value="Se solicitaron correcciones al estudiante."/>
+    </c:when>
+    <c:when test="${rb.funcion eq 'DIRECTOR'}">
+        <c:set var="operacion" value="deProyecto"/>
+        <%@ include file="/WEB-INF/modelo/asignacion.jspf" %>
+        <c:forEach var="d" items="${docentesProyecto.rows}">
+            <c:if test="${d.funcion eq 'EVALUADOR'}"><c:set var="idRevisorAsignado" value="${d.id_usuario}"/></c:if>
+        </c:forEach>
+        <c:set var="idVersionObjetivo" value="${rb.id_version}"/>
+        <c:set var="funcionRevisor" value="EVALUADOR"/>
+        <c:set var="operacion" value="crear"/>
+        <%@ include file="/WEB-INF/modelo/revision.jspf" %>
+        <c:set var="faseNueva" value="${rb.id_fase + 1}"/>
+        <c:set var="responsableNuevo" value="EVALUADOR"/>
+        <c:set var="operacion" value="actualizarTurno"/>
+        <%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+        <c:set var="mensajeTransicion" value="Aprobado: el documento pasó al evaluador."/>
+    </c:when>
+    <c:when test="${rb.funcion eq 'EVALUADOR'}">
+        <c:remove var="idRevisorAsignado"/>
+        <c:set var="idVersionObjetivo" value="${rb.id_version}"/>
+        <c:set var="funcionRevisor" value="COMITE"/>
+        <c:set var="operacion" value="crear"/>
+        <%@ include file="/WEB-INF/modelo/revision.jspf" %>
+        <c:set var="faseNueva" value="${rb.id_fase}"/>
+        <c:set var="responsableNuevo" value="COMITE"/>
+        <c:set var="operacion" value="actualizarTurno"/>
+        <%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+        <c:set var="mensajeTransicion" value="Aprobado: el documento pasó al comité."/>
+    </c:when>
+    <c:otherwise>
+        <c:set var="faseNueva" value="${esAnteproyecto ? 4 : 6}"/>
+        <c:set var="responsableNuevo" value="${esAnteproyecto ? 'ESTUDIANTE' : 'COMITE'}"/>
+        <c:set var="operacion" value="actualizarTurno"/>
+        <%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+        <c:set var="mensajeTransicion" value="${esAnteproyecto ? 'Anteproyecto aprobado. El proyecto pasó a la fase 4.'
+                                                             : 'Informe final aprobado. El proyecto pasó a la fase 6.'}"/>
+    </c:otherwise>
+</c:choose>

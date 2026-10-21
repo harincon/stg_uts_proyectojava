@@ -11,5 +11,7 @@
 <%@ include file="/WEB-INF/modelo/idea.jspf" %>
 <c:set var="operacion" value="conteoFase1"/>
 <%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+<c:set var="operacion" value="conteoComite"/>
+<%@ include file="/WEB-INF/modelo/revision.jspf" %>
 
 <jsp:forward page="/WEB-INF/vista/comite/panel.jsp"/>

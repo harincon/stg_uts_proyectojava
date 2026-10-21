@@ -11,6 +11,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Rechazo definitivo: pide confirmación y solo entonces marca confirmar=SI
+    document.querySelectorAll('form[data-confirmar-rechazo]').forEach(function (formulario) {
+        formulario.addEventListener('submit', function (evento) {
+            if (!window.confirm(formulario.getAttribute('data-confirmar-rechazo'))) {
+                evento.preventDefault();
+                return;
+            }
+            formulario.querySelector('input[name=confirmar]').value = 'SI';
+        });
+    });
+
     // Muestra los campos de estudiante solo cuando el rol elegido es ESTUDIANTE
     document.querySelectorAll('select[data-campos-estudiante]').forEach(function (selector) {
         var campos = document.querySelector(selector.getAttribute('data-campos-estudiante'));

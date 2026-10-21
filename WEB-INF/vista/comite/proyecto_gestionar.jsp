@@ -43,6 +43,25 @@
                     </form>
                 </div>
             </div>
+            <c:if test="${rc.tipo_documento ne 'SOPORTE_PAGO'}">
+                <div class="card border-danger mb-3 zona-rechazo">
+                    <div class="card-body">
+                        <h2 class="h6 text-danger"><i class="bi bi-exclamation-octagon"></i> Rechazar definitivamente</h2>
+                        <p class="small mb-2">Solo para situaciones graves. Esta acción termina el proyecto.</p>
+                        <form method="post" action="<c:url value='/controlador/comite/proyecto_accion.jsp'/>"
+                              data-confirmar-rechazo="Esta acción termina el proyecto. ¿Está seguro?">
+                            <input type="hidden" name="accion" value="decidir_revision">
+                            <input type="hidden" name="id_proyecto" value="${g.id_proyecto}">
+                            <input type="hidden" name="id_revision" value="${rc.id_revision}">
+                            <input type="hidden" name="decision" value="RECHAZADO">
+                            <input type="hidden" name="confirmar" value="">
+                            <label class="form-label small" for="motivoRechazo">Motivo del rechazo</label>
+                            <textarea class="form-control form-control-sm mb-2" id="motivoRechazo" name="observaciones" rows="2" required></textarea>
+                            <button type="submit" class="btn btn-danger w-100">Rechazar definitivamente</button>
+                        </form>
+                    </div>
+                </div>
+            </c:if>
         </c:if>
 
         <c:if test="${g.id_fase eq 1 and g.estado eq 'EN_CURSO'}">

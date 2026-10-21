@@ -53,26 +53,13 @@
                 <a class="btn btn-success" href="${urlFicha}"><i class="bi bi-clipboard-data"></i> Ver seguimiento</a>
             </div>
         </div>
+        <c:if test="${p.estado eq 'RECHAZADO'}">
+            <h2 class="h5 mt-4">Empezar un nuevo proyecto</h2>
+            <%@ include file="/WEB-INF/vista/estudiante/opciones_inicio.jspf" %>
+        </c:if>
     </c:when>
     <c:otherwise>
-        <div class="row g-3">
-            <div class="col-md-6">
-                <a class="card shadow-sm h-100 text-decoration-none" href="<c:url value='/controlador/comun/banco_ideas.jsp'/>">
-                    <div class="card-body">
-                        <h2 class="h5"><i class="bi bi-lightbulb"></i> Elegir idea del banco</h2>
-                        <p class="small text-muted mb-0">Busque una idea aprobada y registre su proyecto, solo o con un compañero.</p>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-6">
-                <a class="card shadow-sm h-100 text-decoration-none" href="<c:url value='/controlador/comun/mis_ideas.jsp'/>">
-                    <div class="card-body">
-                        <h2 class="h5"><i class="bi bi-pencil-square"></i> Proponer idea propia</h2>
-                        <p class="small text-muted mb-0">Si el comité la aprueba, solo usted podrá usarla para su proyecto.</p>
-                    </div>
-                </a>
-            </div>
-        </div>
+        <%@ include file="/WEB-INF/vista/estudiante/opciones_inicio.jspf" %>
     </c:otherwise>
 </c:choose>
 
