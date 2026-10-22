@@ -1,13 +1,16 @@
 <%@ page pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/jspf/taglibs.jspf" %>
-<%-- VISTA: página de inicio. Recibe fases, usuariosPrueba, rutaPanel y errorBD. --%>
+<%-- VISTA: página de inicio. Recibe fases, usuariosPrueba y errorBD. --%>
 <c:set var="tituloPagina" value="Inicio - Trabajos de Grado UTS"/>
 <%@ include file="/WEB-INF/vista/plantilla/cabecera.jspf" %>
 
 <section class="portada p-4 p-md-5 mb-4">
-    <h1 class="fw-bold">Sistema de Gestión de Trabajos de Grado</h1>
-    <p class="lead mb-0">Unidades Tecnológicas de Santander. Inscripción, banco de ideas y seguimiento
-        del trabajo de grado desde el anteproyecto hasta el cierre.</p>
+    <div class="portada-contenido">
+        <span class="portada-etiqueta">Unidades Tecnológicas de Santander</span>
+        <h1 class="fw-bold">Sistema de Gestión de Trabajos de Grado</h1>
+        <p class="lead mb-0">Inscripción, banco de ideas y seguimiento del trabajo de grado
+            desde el anteproyecto hasta el cierre.</p>
+    </div>
 </section>
 
 <div class="row g-4">
@@ -38,28 +41,20 @@
             <div class="card-body p-4">
                 <h2 class="h4 mb-3"><i class="bi bi-box-arrow-in-right"></i> Iniciar sesión</h2>
                 <%@ include file="/WEB-INF/vista/plantilla/mensajes.jspf" %>
-                <c:choose>
-                    <c:when test="${not empty sessionScope.usuario}">
-                        <p>Ya inició sesión como <strong><c:out value="${sessionScope.usuario.nombres}"/></strong>.</p>
-                        <a class="btn btn-success w-100" href="<c:url value='${rutaPanel}'/>">Ir a mi panel</a>
-                    </c:when>
-                    <c:otherwise>
-                        <form method="post" action="<c:url value='/controlador/acceso.jsp'/>">
-                            <div class="mb-3">
-                                <label class="form-label" for="correo">Correo</label>
-                                <input type="email" class="form-control" id="correo" name="correo" required
-                                       placeholder="usuario@uts.edu.co">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label" for="clave">Contraseña</label>
-                                <input type="password" class="form-control" id="clave" name="clave" required>
-                            </div>
-                            <button type="submit" class="btn btn-success w-100">Ingresar</button>
-                        </form>
-                        <p class="text-center small mt-3 mb-0">¿Es estudiante y no tiene cuenta?
-                            <a href="<c:url value='/controlador/registro.jsp'/>">Registrarse</a></p>
-                    </c:otherwise>
-                </c:choose>
+                <form method="post" action="<c:url value='/controlador/acceso.jsp'/>">
+                    <div class="mb-3">
+                        <label class="form-label" for="correo">Correo</label>
+                        <input type="email" class="form-control" id="correo" name="correo" required
+                               placeholder="usuario@uts.edu.co">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="clave">Contraseña</label>
+                        <input type="password" class="form-control" id="clave" name="clave" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Ingresar</button>
+                </form>
+                <p class="text-center small mt-3 mb-0">¿Es estudiante y no tiene cuenta?
+                    <a href="<c:url value='/controlador/registro.jsp'/>">Registrarse</a></p>
                 <button type="button" class="btn btn-outline-secondary w-100 mt-3"
                         data-bs-toggle="modal" data-bs-target="#modalUsuariosPrueba">
                     <i class="bi bi-people"></i> Usuarios de prueba

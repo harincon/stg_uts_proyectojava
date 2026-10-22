@@ -1,0 +1,27 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- VISTA (fragmento): entrega del estudiante responsable dentro de la carta de la fase actual.
+     Recibe f (fila de la ficha) y esResponsable. --%>
+<c:if test="${esResponsable and f.responsable_actual eq 'ESTUDIANTE' and (f.id_fase eq 1 or f.id_fase eq 2 or f.id_fase eq 4)}">
+    <div class="card border-success">
+        <div class="card-body">
+            <h4 class="h6">
+                <c:choose>
+                    <c:when test="${f.id_fase eq 1}">Registrar URL del soporte de pago</c:when>
+                    <c:when test="${f.id_fase eq 2}">Registrar URL del anteproyecto (F-DC-124)</c:when>
+                    <c:otherwise>Registrar URL del informe final (F-DC-125)</c:otherwise>
+                </c:choose>
+            </h4>
+            <form class="row g-2" method="post" action="<c:url value='/controlador/estudiante/entrega_guardar.jsp'/>">
+                <input type="hidden" name="id_proyecto" value="${f.id_proyecto}">
+                <div class="col-md-9">
+                    <input type="url" class="form-control" name="url" required maxlength="500" placeholder="https://…"
+                           aria-label="URL del documento">
+                    <div class="form-text">El enlace debe permitir el acceso de lectura a los revisores.</div>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-success w-100"><i class="bi bi-upload"></i> Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</c:if>

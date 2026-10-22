@@ -1,6 +1,8 @@
 <%@ page pageEncoding="UTF-8" %>
-<%-- VISTA (fragmento): ficha de un proyecto. Recibe ficha, integrantesProyecto, docentesProyecto,
-     historialVersiones y revisionesProyecto. --%>
+<%-- VISTA (fragmento): ficha de un proyecto con sus fases en cartas. Al elegir una carta se ve el historial
+     de esa fase; la carta de la fase actual trae además las acciones de quien la ve.
+     Recibe ficha, fases, integrantesProyecto, docentesProyecto, historialVersiones y revisionesProyecto.
+     La vista puede definir accionesFicha (ESTUDIANTE | COMITE | DOCENTE) para mostrar sus acciones. --%>
 <c:set var="f" value="${ficha.rows[0]}"/>
 <c:set var="efFase" value="${f.id_fase}"/>
 <c:set var="efResponsable" value="${f.responsable_actual}"/>
@@ -9,11 +11,9 @@
 <div class="card shadow-sm mb-3">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-            <h1 class="h4 mb-1"><c:out value="${f.titulo}"/></h1>
+            <h1 class="h4 mb-2"><c:out value="${f.titulo}"/></h1>
             <div class="fs-6"><%@ include file="/WEB-INF/vista/plantilla/etiqueta_fase.jspf" %></div>
         </div>
-        <p class="mb-1"><strong>Fase <c:out value="${f.id_fase}"/>:</strong> <c:out value="${f.fase}"/></p>
-        <p class="small text-muted mb-2"><c:out value="${f.descripcion_fase}"/></p>
         <c:if test="${not empty f.observacion_cierre}">
             <div class="alert ${f.estado eq 'RECHAZADO' ? 'alert-danger' : 'alert-success'} py-2 mb-2">
                 <strong>${f.estado eq 'RECHAZADO' ? 'Motivo del rechazo:' : 'Cierre:'}</strong> <c:out value="${f.observacion_cierre}"/>
@@ -43,60 +43,153 @@
     </div>
 </div>
 
-<h2 class="h5">Historial de versiones</h2>
-<c:choose>
-    <c:when test="${historialVersiones.rowCount eq 0}">
-        <div class="alert alert-info">Todavía no hay documentos entregados.</div>
-    </c:when>
-    <c:otherwise>
-        <div class="list-group mb-3">
-            <c:forEach var="v" items="${historialVersiones.rows}">
-                <div class="list-group-item">
-                    <div class="d-flex justify-content-between flex-wrap gap-2">
-                        <div>
-                            <strong>
-                                <c:choose>
-                                    <c:when test="${v.tipo_documento eq 'SOPORTE_PAGO'}">Soporte de pago</c:when>
-                                    <c:when test="${v.tipo_documento eq 'F-DC-124'}">Anteproyecto (F-DC-124)</c:when>
-                                    <c:when test="${v.tipo_documento eq 'F-DC-125'}">Informe final (F-DC-125)</c:when>
-                                    <c:otherwise>Rejilla de evaluación (F-DC-129)</c:otherwise>
-                                </c:choose>
-                                &middot; versión <c:out value="${v.version}"/>
-                            </strong>
-                            <div class="small text-muted">Entregado por <c:out value="${v.autor}"/> el
-                                <fmt:formatDate value="${v.fecha_entrega}" pattern="dd/MM/yyyy HH:mm"/></div>
-                        </div>
-                        <a class="btn btn-sm btn-outline-success align-self-start" href="<c:out value='${v.url}'/>"
-                           target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> <c:out value="${v.url}"/></a>
-                    </div>
-                    <c:forEach var="r" items="${revisionesProyecto.rows}">
-                        <c:if test="${r.id_version eq v.id_version}">
-                            <div class="border-start border-3 ps-2 mt-2 small">
-                                <strong>
-                                    <c:choose>
-                                        <c:when test="${r.funcion eq 'DIRECTOR'}">Director</c:when>
-                                        <c:when test="${r.funcion eq 'EVALUADOR'}">Evaluador</c:when>
-                                        <c:otherwise>Comité</c:otherwise>
-                                    </c:choose>:
-                                </strong>
-                                <c:out value="${empty r.revisor ? 'Comité' : r.revisor}"/>
-                                <c:choose>
-                                    <c:when test="${r.estado eq 'APROBADO'}"><span class="badge text-bg-success">Aprobado</span></c:when>
-                                    <c:when test="${r.estado eq 'EN_CORRECCIONES'}"><span class="badge text-bg-warning">En correcciones</span></c:when>
-                                    <c:when test="${r.estado eq 'RECHAZADO'}"><span class="badge text-bg-danger">Rechazado</span></c:when>
-                                    <c:otherwise><span class="badge text-bg-secondary">Pendiente de revisión</span></c:otherwise>
-                                </c:choose>
-                                <c:if test="${not empty r.fecha_revision}">
-                                    <span class="text-muted">&middot; <fmt:formatDate value="${r.fecha_revision}" pattern="dd/MM/yyyy HH:mm"/></span>
-                                </c:if>
-                                <c:if test="${not empty r.observaciones}">
-                                    <div class="text-body-secondary">Observaciones: <c:out value="${r.observaciones}"/></div>
-                                </c:if>
-                            </div>
-                        </c:if>
-                    </c:forEach>
-                </div>
-            </c:forEach>
+<%-- Carta elegida al abrir: la fase actual (la 6 si el proyecto ya terminó con éxito) --%>
+<c:set var="faseElegida" value="${f.estado eq 'FINALIZADO' ? 6 : f.id_fase}"/>
+<c:set var="rolTurno" value="${efResponsable eq 'ESTUDIANTE' ? 'Estudiante'
+                              : efResponsable eq 'DIRECTOR' ? 'Director'
+                              : efResponsable eq 'EVALUADOR' ? 'Evaluador' : 'Comité'}"/>
+
+<h2 class="h5">Fases del proyecto</h2>
+<div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-2 mb-3" role="tablist" aria-label="Fases del proyecto">
+    <c:forEach var="fc" items="${fases.rows}">
+        <c:set var="nf" value="${fc.id_fase}"/>
+        <c:choose>
+            <c:when test="${f.estado eq 'FINALIZADO' or nf lt f.id_fase}"><c:set var="estadoCarta" value="completada"/></c:when>
+            <c:when test="${nf eq f.id_fase and f.estado eq 'RECHAZADO'}"><c:set var="estadoCarta" value="rechazada"/></c:when>
+            <c:when test="${nf eq f.id_fase}"><c:set var="estadoCarta" value="actual"/></c:when>
+            <c:otherwise><c:set var="estadoCarta" value="pendiente"/></c:otherwise>
+        </c:choose>
+        <div class="col">
+            <button type="button" class="fase-carta ${estadoCarta}${nf eq faseElegida ? ' active' : ''}" id="cartaFase${nf}"
+                    data-bs-toggle="tab" data-bs-target="#panelFase${nf}" role="tab" aria-controls="panelFase${nf}"
+                    aria-selected="${nf eq faseElegida}">
+                <span class="fase-carta-numero">
+                    <c:choose>
+                        <c:when test="${estadoCarta eq 'completada'}"><i class="bi bi-check-lg" aria-hidden="true"></i></c:when>
+                        <c:when test="${estadoCarta eq 'rechazada'}"><i class="bi bi-x-lg" aria-hidden="true"></i></c:when>
+                        <c:otherwise><c:out value="${nf}"/></c:otherwise>
+                    </c:choose>
+                </span>
+                <span class="fase-carta-nombre"><c:out value="${fc.nombre}"/></span>
+                <span class="fase-carta-estado">
+                    <c:choose>
+                        <c:when test="${nf eq 6 and f.estado eq 'FINALIZADO'}">Finalizado</c:when>
+                        <c:when test="${estadoCarta eq 'completada'}">Completada</c:when>
+                        <c:when test="${estadoCarta eq 'rechazada'}">Rechazado</c:when>
+                        <c:when test="${estadoCarta eq 'actual'}"><c:out value="En curso · ${rolTurno}"/></c:when>
+                        <c:when test="${f.estado eq 'RECHAZADO'}">No alcanzada</c:when>
+                        <c:otherwise>Pendiente</c:otherwise>
+                    </c:choose>
+                </span>
+            </button>
         </div>
-    </c:otherwise>
-</c:choose>
+    </c:forEach>
+</div>
+
+<div class="tab-content mb-3">
+    <c:forEach var="fc" items="${fases.rows}">
+        <c:set var="nf" value="${fc.id_fase}"/>
+        <%-- Documentos y revisores que pertenecen a cada fase --%>
+        <c:choose>
+            <c:when test="${nf eq 1}"><c:set var="tiposFase" value="SOPORTE_PAGO"/><c:set var="funcionesFase" value="COMITE"/></c:when>
+            <c:when test="${nf eq 2}"><c:set var="tiposFase" value="F-DC-124"/><c:set var="funcionesFase" value="DIRECTOR"/></c:when>
+            <c:when test="${nf eq 3}"><c:set var="tiposFase" value="F-DC-124"/><c:set var="funcionesFase" value="EVALUADOR COMITE"/></c:when>
+            <c:when test="${nf eq 4}"><c:set var="tiposFase" value="F-DC-125"/><c:set var="funcionesFase" value="DIRECTOR"/></c:when>
+            <c:when test="${nf eq 5}"><c:set var="tiposFase" value="F-DC-125 F-DC-129"/><c:set var="funcionesFase" value="EVALUADOR COMITE"/></c:when>
+            <c:otherwise><c:set var="tiposFase" value="NINGUNO"/><c:set var="funcionesFase" value="NINGUNA"/></c:otherwise>
+        </c:choose>
+        <c:set var="faseDeEntrega" value="${nf eq 1 or nf eq 2 or nf eq 4}"/>
+        <div id="panelFase${nf}" class="tab-pane fade${nf eq faseElegida ? ' show active' : ''}"
+             role="tabpanel" aria-labelledby="cartaFase${nf}" tabindex="0">
+            <div class="card shadow-sm panel-fase">
+                <div class="card-body">
+                    <h3 class="h5 mb-1">Fase <c:out value="${nf}"/>: <c:out value="${fc.nombre}"/></h3>
+                    <p class="small text-muted"><c:out value="${fc.descripcion}"/></p>
+
+                    <c:if test="${nf eq f.id_fase and f.estado eq 'EN_CURSO' and not empty accionesFicha}">
+                        <div class="acciones-fase mb-3">
+                            <c:choose>
+                                <c:when test="${accionesFicha eq 'ESTUDIANTE'}"><%@ include file="/WEB-INF/vista/estudiante/acciones_entrega.jspf" %></c:when>
+                                <c:when test="${accionesFicha eq 'COMITE'}"><%@ include file="/WEB-INF/vista/comite/acciones_proyecto.jspf" %></c:when>
+                                <c:when test="${accionesFicha eq 'DOCENTE'}"><%@ include file="/WEB-INF/vista/docente/acciones_revision.jspf" %></c:when>
+                            </c:choose>
+                        </div>
+                    </c:if>
+
+                    <c:if test="${nf eq 6 and f.estado eq 'FINALIZADO'}">
+                        <div class="alert alert-success py-2">
+                            <i class="bi bi-flag"></i> Proyecto finalizado el
+                            <fmt:formatDate value="${f.fecha_fin}" pattern="dd/MM/yyyy"/>.
+                        </div>
+                    </c:if>
+
+                    <h4 class="h6">Historial de versiones de la fase</h4>
+                    <c:set var="hayMovimientos" value="${false}"/>
+                    <div class="list-group">
+                        <c:forEach var="v" items="${historialVersiones.rows}">
+                            <c:if test="${fn:contains(tiposFase, v.tipo_documento)}">
+                                <c:set var="revisionesDeFase" value="${0}"/>
+                                <c:forEach var="r" items="${revisionesProyecto.rows}">
+                                    <c:if test="${r.id_version eq v.id_version and fn:contains(funcionesFase, r.funcion)}">
+                                        <c:set var="revisionesDeFase" value="${revisionesDeFase + 1}"/>
+                                    </c:if>
+                                </c:forEach>
+                                <c:if test="${faseDeEntrega or revisionesDeFase gt 0 or v.tipo_documento eq 'F-DC-129'}">
+                                    <c:set var="hayMovimientos" value="${true}"/>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between flex-wrap gap-2">
+                                            <div>
+                                                <strong>
+                                                    <c:choose>
+                                                        <c:when test="${v.tipo_documento eq 'SOPORTE_PAGO'}">Soporte de pago</c:when>
+                                                        <c:when test="${v.tipo_documento eq 'F-DC-124'}">Anteproyecto (F-DC-124)</c:when>
+                                                        <c:when test="${v.tipo_documento eq 'F-DC-125'}">Informe final (F-DC-125)</c:when>
+                                                        <c:otherwise>Rejilla de evaluación (F-DC-129)</c:otherwise>
+                                                    </c:choose>
+                                                    &middot; versión <c:out value="${v.version}"/>
+                                                </strong>
+                                                <div class="small text-muted">Entregado por <c:out value="${v.autor}"/> el
+                                                    <fmt:formatDate value="${v.fecha_entrega}" pattern="dd/MM/yyyy HH:mm"/></div>
+                                            </div>
+                                            <a class="btn btn-sm btn-outline-success align-self-start" href="<c:out value='${v.url}'/>"
+                                               target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> <c:out value="${v.url}"/></a>
+                                        </div>
+                                        <c:forEach var="r" items="${revisionesProyecto.rows}">
+                                            <c:if test="${r.id_version eq v.id_version and fn:contains(funcionesFase, r.funcion)}">
+                                                <div class="border-start border-3 ps-2 mt-2 small">
+                                                    <strong>
+                                                        <c:choose>
+                                                            <c:when test="${r.funcion eq 'DIRECTOR'}">Director</c:when>
+                                                            <c:when test="${r.funcion eq 'EVALUADOR'}">Evaluador</c:when>
+                                                            <c:otherwise>Comité</c:otherwise>
+                                                        </c:choose>:
+                                                    </strong>
+                                                    <c:out value="${empty r.revisor ? 'Comité' : r.revisor}"/>
+                                                    <c:choose>
+                                                        <c:when test="${r.estado eq 'APROBADO'}"><span class="badge text-bg-success">Aprobado</span></c:when>
+                                                        <c:when test="${r.estado eq 'EN_CORRECCIONES'}"><span class="badge text-bg-warning">En correcciones</span></c:when>
+                                                        <c:when test="${r.estado eq 'RECHAZADO'}"><span class="badge text-bg-danger">Rechazado</span></c:when>
+                                                        <c:otherwise><span class="badge text-bg-secondary">Pendiente de revisión</span></c:otherwise>
+                                                    </c:choose>
+                                                    <c:if test="${not empty r.fecha_revision}">
+                                                        <span class="text-muted">&middot; <fmt:formatDate value="${r.fecha_revision}" pattern="dd/MM/yyyy HH:mm"/></span>
+                                                    </c:if>
+                                                    <c:if test="${not empty r.observaciones}">
+                                                        <div class="text-body-secondary">Observaciones: <c:out value="${r.observaciones}"/></div>
+                                                    </c:if>
+                                                </div>
+                                            </c:if>
+                                        </c:forEach>
+                                    </div>
+                                </c:if>
+                            </c:if>
+                        </c:forEach>
+                    </div>
+                    <c:if test="${not hayMovimientos}">
+                        <p class="text-muted small mb-0">Sin movimientos en esta fase.</p>
+                    </c:if>
+                </div>
+            </div>
+        </div>
+    </c:forEach>
+</div>

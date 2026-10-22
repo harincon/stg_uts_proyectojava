@@ -2,6 +2,7 @@
 <%@ include file="/WEB-INF/jspf/taglibs.jspf" %>
 <%-- VISTA: acceso no autorizado. Recibe rutaPanel. --%>
 <c:set var="tituloPagina" value="Acceso no autorizado"/>
+<c:set var="ocultarVolver" value="${true}"/>
 <%@ include file="/WEB-INF/vista/plantilla/cabecera.jspf" %>
 
 <div class="text-center py-5">

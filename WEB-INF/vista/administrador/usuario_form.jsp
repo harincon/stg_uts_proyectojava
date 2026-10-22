@@ -4,6 +4,7 @@
 <c:set var="editando" value="${not empty usuarioObjetivo and usuarioObjetivo.rowCount gt 0}"/>
 <c:set var="u" value="${editando ? usuarioObjetivo.rows[0] : null}"/>
 <c:set var="tituloPagina" value="${editando ? 'Editar usuario' : 'Crear cuenta'}"/>
+<c:set var="volverA" value="/controlador/administrador/usuarios.jsp"/>
 <%@ include file="/WEB-INF/vista/plantilla/cabecera.jspf" %>
 
 <div class="row justify-content-center">

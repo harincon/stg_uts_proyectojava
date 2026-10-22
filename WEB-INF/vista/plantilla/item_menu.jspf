@@ -1,0 +1,7 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Una opción del menú lateral. Entrada: itemRuta, itemTexto, itemIcono (clase de Bootstrap Icons).
+     Queda activa si es la página actual o la página a la que vuelve la actual (volverA). --%>
+<c:set var="itemActivo" value="${itemRuta eq rutaActual or itemRuta eq volverA}"/>
+<a class="menu-item${itemActivo ? ' activo' : ''}" href="<c:url value='${itemRuta}'/>" title="<c:out value='${itemTexto}'/>"${itemActivo ? ' aria-current="page"' : ''}>
+    <i class="bi ${itemIcono}" aria-hidden="true"></i><span class="menu-texto"><c:out value="${itemTexto}"/></span>
+</a>

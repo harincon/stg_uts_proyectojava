@@ -1,0 +1,83 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- VISTA (fragmento): decisión del director o del evaluador dentro de la carta de la fase actual.
+     Recibe rv (revisión que se está revisando), enTurno y, para el evaluador del informe final, rejilla. --%>
+<c:if test="${enTurno}">
+    <c:if test="${rv.funcion eq 'EVALUADOR' and rv.tipo_documento eq 'F-DC-125'}">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h4 class="h6">Rejilla de evaluación F-DC-129</h4>
+                <c:choose>
+                    <c:when test="${rejilla.rowCount gt 0}">
+                        <p class="mb-2"><span class="badge text-bg-success">Registrada</span>
+                            versión <c:out value="${rejilla.rows[0].version}"/>:
+                            <a href="<c:out value='${rejilla.rows[0].url}'/>" target="_blank" rel="noopener"><c:out value="${rejilla.rows[0].url}"/></a></p>
+                    </c:when>
+                    <c:otherwise>
+                        <p class="mb-2 text-danger small">Todavía no ha registrado la rejilla de esta versión del informe.
+                            Es obligatoria para aprobar.</p>
+                    </c:otherwise>
+                </c:choose>
+                <form class="row g-2" method="post" action="<c:url value='/controlador/docente/rejilla_guardar.jsp'/>">
+                    <input type="hidden" name="id_proyecto" value="${rv.id_proyecto}">
+                    <input type="hidden" name="id_revision" value="${rv.id_revision}">
+                    <div class="col-md-9">
+                        <input type="url" class="form-control" name="url" required maxlength="500" placeholder="https://…"
+                               aria-label="URL de la rejilla F-DC-129">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-outline-success w-100">Registrar rejilla F-DC-129</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </c:if>
+
+    <div class="row g-3">
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h4 class="h6">Aprobar</h4>
+                    <form method="post" action="<c:url value='/controlador/docente/revision_guardar.jsp'/>">
+                        <input type="hidden" name="id_revision" value="${rv.id_revision}">
+                        <input type="hidden" name="decision" value="APROBADO">
+                        <label class="form-label small" for="obsAprobar">Observaciones (opcional)</label>
+                        <textarea class="form-control form-control-sm mb-2" id="obsAprobar" name="observaciones" rows="2"></textarea>
+                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-lg"></i> Aprobar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h4 class="h6">Solicitar correcciones</h4>
+                    <form method="post" action="<c:url value='/controlador/docente/revision_guardar.jsp'/>">
+                        <input type="hidden" name="id_revision" value="${rv.id_revision}">
+                        <input type="hidden" name="decision" value="EN_CORRECCIONES">
+                        <label class="form-label small" for="obsCorrecciones">Observaciones para el estudiante</label>
+                        <textarea class="form-control form-control-sm mb-2" id="obsCorrecciones" name="observaciones" rows="2" required></textarea>
+                        <button type="submit" class="btn btn-warning w-100">Solicitar correcciones</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12 col-xl-4">
+            <div class="card border-danger h-100 zona-rechazo">
+                <div class="card-body">
+                    <h4 class="h6 text-danger"><i class="bi bi-exclamation-octagon"></i> Rechazar definitivamente</h4>
+                    <p class="small mb-2">Solo para situaciones graves (por ejemplo, copia comprobada). Esta acción termina el proyecto
+                        y el estudiante pierde el proceso.</p>
+                    <form method="post" action="<c:url value='/controlador/docente/revision_guardar.jsp'/>"
+                          data-confirmar-rechazo="Esta acción termina el proyecto. ¿Está seguro?">
+                        <input type="hidden" name="id_revision" value="${rv.id_revision}">
+                        <input type="hidden" name="decision" value="RECHAZADO">
+                        <input type="hidden" name="confirmar" value="">
+                        <label class="form-label small" for="motivoRechazo">Motivo del rechazo</label>
+                        <textarea class="form-control form-control-sm mb-2" id="motivoRechazo" name="observaciones" rows="2" required></textarea>
+                        <button type="submit" class="btn btn-danger w-100">Rechazar definitivamente</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</c:if>

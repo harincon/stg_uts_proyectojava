@@ -1,5 +1,9 @@
 <%@ page pageEncoding="UTF-8" %>
-<%-- Encabezado común. Antes de incluirlo la página puede definir tituloPagina. --%>
+<%-- Encabezado común. Antes de incluirlo la página puede definir tituloPagina, volverA (ruta del botón Volver
+     y opción del menú que queda activa) y ocultarVolver.
+     Con sesión: barra superior con la sección actual y el usuario, y menú lateral plegable (como Render). --%>
+<c:set var="conMenu" value="${not empty sessionScope.usuario}"/>
+<c:set var="rutaActual" value="${requestScope['javax.servlet.forward.servlet_path']}"/>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,74 +12,52 @@
     <title><c:out value="${empty tituloPagina ? 'Trabajos de Grado UTS' : tituloPagina}"/></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="<c:url value='/css/estilos.css'/>" rel="stylesheet">
+    <%-- versionRecursos cambia cada vez que cambian estilos.css o app.js, para que el navegador no use una copia vieja --%>
+    <c:set var="versionRecursos" value="11.3"/>
+    <link href="${pageContext.request.contextPath}/css/estilos.css?v=${versionRecursos}" rel="stylesheet">
+    <%-- Aplica el menú plegado antes de pintar la página para que no parpadee --%>
+    <script>try { if (localStorage.getItem('menuPlegado') === '1') { document.documentElement.classList.add('menu-plegado'); } } catch (e) {}</script>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark barra-principal">
-    <div class="container">
+<nav class="navbar navbar-dark barra-principal">
+    <div class="container-fluid flex-nowrap">
+        <c:if test="${conMenu}">
+            <button class="btn btn-barra d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral"
+                    aria-controls="menuLateral" aria-label="Abrir menú"><i class="bi bi-list"></i></button>
+        </c:if>
         <a class="navbar-brand fw-bold" href="<c:url value='/index.jsp'/>">
-            <i class="bi bi-mortarboard-fill"></i> Trabajos de Grado UTS
+            <img class="logo-barra" src="${pageContext.request.contextPath}/img/logo-uts-marca.svg" alt="Unidades Tecnológicas de Santander">
+            <span class="marca-texto">Trabajos de Grado UTS</span>
         </a>
-        <c:if test="${not empty sessionScope.usuario}">
-            <c:set var="rolMenu" value="${sessionScope.usuario.rol}"/>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal"
-                    aria-controls="menuPrincipal" aria-expanded="false" aria-label="Mostrar menú">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="menuPrincipal">
-                <ul class="navbar-nav me-auto">
-                    <c:choose>
-                        <c:when test="${rolMenu eq 'ADMINISTRADOR'}">
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/administrador/panel.jsp'/>">Inicio</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/administrador/usuarios.jsp'/>">Usuarios</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/administrador/programas.jsp'/>">Programas</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/administrador/documentos.jsp'/>">Base documental</a></li>
-                        </c:when>
-                        <c:when test="${rolMenu eq 'COMITE'}">
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comite/panel.jsp'/>">Inicio</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comite/inscripciones.jsp'/>">Inscripciones</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comite/ideas.jsp'/>">Ideas</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comun/banco_ideas.jsp'/>">Banco de ideas</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comite/proyectos.jsp'/>">Proyectos</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comite/informes.jsp'/>">Informes</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comun/base_documental.jsp'/>">Base documental</a></li>
-                        </c:when>
-                        <c:when test="${rolMenu eq 'DOCENTE'}">
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/docente/panel.jsp'/>">Inicio</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/docente/director.jsp'/>">Como director</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/docente/evaluador.jsp'/>">Como evaluador</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comun/mis_ideas.jsp'/>">Mis ideas</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comun/banco_ideas.jsp'/>">Banco de ideas</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comun/base_documental.jsp'/>">Base documental</a></li>
-                        </c:when>
-                        <c:when test="${rolMenu eq 'ESTUDIANTE' and sessionScope.usuario.estado_inscripcion eq 'APROBADO'}">
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/estudiante/panel.jsp'/>">Inicio</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comun/mis_ideas.jsp'/>">Mis ideas</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comun/banco_ideas.jsp'/>">Banco de ideas</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comun/base_documental.jsp'/>">Base documental</a></li>
-                        </c:when>
-                        <c:when test="${rolMenu eq 'ESTUDIANTE'}">
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/estudiante/inscripcion.jsp'/>">Estado de mi inscripción</a></li>
-                            <li class="nav-item"><a class="nav-link" href="<c:url value='/controlador/comun/base_documental.jsp'/>">Base documental</a></li>
-                        </c:when>
-                    </c:choose>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i>
-                            <c:out value="${sessionScope.usuario.nombres}"/>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text small text-muted"><c:out value="${rolMenu}"/></span></li>
-                            <li><a class="dropdown-item" href="<c:url value='/controlador/comun/cambiar_clave.jsp'/>">Cambiar contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="<c:url value='/controlador/salir.jsp'/>">Cerrar sesión</a></li>
-                        </ul>
-                    </li>
+        <c:if test="${conMenu}">
+            <span class="barra-seccion d-none d-md-flex"><i class="bi bi-chevron-right" aria-hidden="true"></i>
+                <c:out value="${tituloPagina}"/></span>
+            <div class="dropdown ms-auto">
+                <button class="btn btn-barra dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i>
+                    <span class="d-none d-sm-inline"><c:out value="${sessionScope.usuario.nombres}"/></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><span class="dropdown-item-text small text-muted"><c:out value="${sessionScope.usuario.rol}"/></span></li>
+                    <li><a class="dropdown-item" href="<c:url value='/controlador/comun/cambiar_clave.jsp'/>">Cambiar contraseña</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="<c:url value='/controlador/salir.jsp'/>">Cerrar sesión</a></li>
                 </ul>
             </div>
         </c:if>
     </div>
 </nav>
+<div class="app-cuerpo">
+<c:if test="${conMenu}">
+    <%@ include file="/WEB-INF/vista/plantilla/menu_lateral.jspf" %>
+</c:if>
+<div class="app-contenido">
 <main class="container py-4">
+<%-- Botón Volver: lleva a volverA (si la vista lo define) o al panel del rol; no sale en el propio panel --%>
+<c:if test="${conMenu}">
+    <%@ include file="/WEB-INF/jspf/ruta_panel.jspf" %>
+</c:if>
+<c:set var="destinoVolver" value="${not empty volverA ? volverA : (conMenu ? rutaPanel : '')}"/>
+<c:if test="${not empty destinoVolver and not ocultarVolver and destinoVolver ne rutaActual}">
+    <a class="btn btn-sm btn-outline-secondary btn-volver" href="<c:url value='${destinoVolver}'/>"><i class="bi bi-arrow-left"></i> Volver</a>
+</c:if>

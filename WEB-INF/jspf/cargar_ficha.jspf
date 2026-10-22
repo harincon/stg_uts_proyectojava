@@ -1,10 +1,12 @@
 <%@ page pageEncoding="UTF-8" %>
 <%-- CARGA DE LA FICHA de un proyecto (la usan los controladores que muestran la ficha).
      Entrada: idProyecto
-     Salida (request): ficha, integrantesProyecto, docentesProyecto, historialVersiones, revisionesProyecto,
+     Salida (request): ficha, fases, integrantesProyecto, docentesProyecto, historialVersiones, revisionesProyecto,
                        esResponsable (true si el usuario de la sesión es el estudiante responsable) --%>
 <c:set var="operacion" value="obtenerFicha"/>
 <%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+<c:set var="operacion" value="listar"/>
+<%@ include file="/WEB-INF/modelo/fase.jspf" %>
 <c:set var="operacion" value="integrantes"/>
 <%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
 <c:set var="operacion" value="deProyecto"/>

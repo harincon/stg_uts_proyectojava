@@ -1,11 +1,68 @@
+/* Colores del manual de identidad de la UTS:
+   Pantone 382 C (#C3D730, verde lima del logo), Pantone 5535 C (#132F20, verde oscuro),
+   #34531F (verde oliva de la paleta complementaria) y los grises #B3B3B3, #878787 y #575756. */
 :root {
-    --uts-verde: #00695c;
-    --uts-verde-oscuro: #004d40;
-    --uts-verde-claro: #e8f5e9;
+    --uts-lima: #C3D730;
+    --uts-lima-claro: #f3f7d6;
+    --uts-verde: #34531F;
+    --uts-verde-oscuro: #132F20;
+    --uts-gris: #575756;
+    --uts-gris-claro: #B3B3B3;
+
+    /* Bootstrap: el color "success" pasa a ser el verde institucional */
+    --bs-success: #34531F;
+    --bs-success-rgb: 52, 83, 31;
+    --bs-success-text-emphasis: #132F20;
+    --bs-success-bg-subtle: #f3f7d6;
+    --bs-success-border-subtle: #dde88f;
+    --bs-link-color: #34531F;
+    --bs-link-color-rgb: 52, 83, 31;
+    --bs-link-hover-color: #132F20;
+    --bs-link-hover-color-rgb: 19, 47, 32;
+}
+
+.btn-success {
+    --bs-btn-bg: #34531F;
+    --bs-btn-border-color: #34531F;
+    --bs-btn-hover-bg: #132F20;
+    --bs-btn-hover-border-color: #132F20;
+    --bs-btn-active-bg: #132F20;
+    --bs-btn-active-border-color: #132F20;
+    --bs-btn-disabled-bg: #34531F;
+    --bs-btn-disabled-border-color: #34531F;
+    --bs-btn-focus-shadow-rgb: 195, 215, 48;
+}
+
+.btn-outline-success {
+    --bs-btn-color: #34531F;
+    --bs-btn-border-color: #34531F;
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-hover-bg: #34531F;
+    --bs-btn-hover-border-color: #34531F;
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-active-bg: #132F20;
+    --bs-btn-active-border-color: #132F20;
+    --bs-btn-disabled-color: #34531F;
+    --bs-btn-disabled-border-color: #34531F;
+    --bs-btn-focus-shadow-rgb: 195, 215, 48;
+}
+
+.nav-pills {
+    --bs-nav-pills-link-active-bg: #34531F;
+}
+
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+    border-color: #a9bb1f;
+    box-shadow: 0 0 0 .25rem rgba(195, 215, 48, .35);
+}
+
+.form-check-input:checked {
+    background-color: #34531F;
+    border-color: #34531F;
 }
 
 body {
-    background: #f4f6f5;
+    background: #f5f6f2;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -15,27 +72,339 @@ main {
     flex: 1;
 }
 
+/* ===== Estructura: barra superior + menú lateral (como Render) + contenido ===== */
+:root {
+    --alto-barra: 3.75rem;
+    --ancho-menu: 15rem;
+    --ancho-menu-plegado: 4.25rem;
+}
+
 .barra-principal {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    height: var(--alto-barra);
+    padding: 0;
+    background: var(--uts-verde-oscuro);
+    border-bottom: 4px solid var(--uts-lima);
+}
+
+.barra-principal .container-fluid {
+    height: 100%;
+    gap: .75rem;
+}
+
+/* Marca: "uts" con su línea gris (logo-uts-marca.svg) seguida del nombre del sistema */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-right: 0;
+    color: #ffffff;
+}
+
+.navbar-brand:hover, .navbar-brand:focus {
+    color: #ffffff;
+}
+
+.logo-barra {
+    height: 2rem;
+    width: auto;
+}
+
+/* Sección actual, al lado de la marca (como "Projects" en Render) */
+.barra-seccion {
+    align-items: center;
+    gap: .5rem;
+    padding-left: .75rem;
+    border-left: 1px solid rgba(255, 255, 255, .2);
+    color: rgba(255, 255, 255, .85);
+    white-space: nowrap;
+}
+
+.barra-seccion .bi {
+    color: var(--uts-lima);
+    font-size: .8rem;
+}
+
+.btn-barra {
+    color: rgba(255, 255, 255, .85);
+    border: 0;
+}
+
+.btn-barra:hover, .btn-barra:focus, .btn-barra.show {
+    color: var(--uts-lima);
+}
+
+.btn-barra .bi-list {
+    font-size: 1.5rem;
+}
+
+.app-cuerpo {
+    flex: 1;
+    display: flex;
+}
+
+.app-contenido {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-lateral {
+    --bs-offcanvas-width: 17rem;
+    background-color: var(--uts-verde-oscuro) !important;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-lista {
+    flex: 1;
+    overflow-y: auto;
+    padding: .75rem .5rem;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    width: 100%;
+    padding: .55rem .75rem;
+    margin-bottom: .15rem;
+    border: 0;
+    border-radius: .375rem;
+    background: none;
+    color: rgba(255, 255, 255, .82);
+    text-decoration: none;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.menu-item .bi {
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.menu-item:hover, .menu-item:focus-visible {
+    background: rgba(255, 255, 255, .08);
+    color: #ffffff;
+}
+
+.menu-item.activo {
     background: var(--uts-verde);
+    color: #ffffff;
+    box-shadow: inset 3px 0 0 var(--uts-lima);
+}
+
+.menu-item.activo .bi {
+    color: var(--uts-lima);
+}
+
+.menu-seccion {
+    padding: 1.1rem .75rem .4rem;
+    color: var(--uts-gris-claro);
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.menu-pie {
+    padding: .5rem;
+    border-top: 1px solid rgba(255, 255, 255, .12);
+}
+
+@media (min-width: 992px) {
+    .menu-lateral {
+        position: sticky;
+        top: var(--alto-barra);
+        width: var(--ancho-menu);
+        height: calc(100vh - var(--alto-barra));
+        flex-shrink: 0;
+        transition: width .2s ease;
+    }
+
+    /* Menú plegado: solo íconos, y las secciones se vuelven líneas cortas */
+    .menu-plegado .menu-lateral {
+        width: var(--ancho-menu-plegado);
+    }
+
+    .menu-plegado .menu-texto {
+        display: none;
+    }
+
+    .menu-plegado .menu-item {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .menu-plegado .menu-seccion {
+        padding: .75rem 0;
+    }
+
+    .menu-plegado .menu-seccion span {
+        display: none;
+    }
+
+    .menu-plegado .menu-seccion::before {
+        content: "";
+        display: block;
+        width: 1.5rem;
+        height: 1px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, .3);
+    }
+
+    .menu-plegado .menu-pie .bi {
+        transform: scaleX(-1);
+    }
+}
+
+/* ===== Ficha del proyecto: fases en cartas ===== */
+.fase-carta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .35rem;
+    width: 100%;
+    height: 100%;
+    padding: .75rem;
+    border: 1px solid #dee2e6;
+    border-radius: .5rem;
+    background: #ffffff;
+    color: var(--bs-body-color);
+    text-align: left;
+    transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+.fase-carta:hover {
+    border-color: var(--uts-lima);
+    transform: translateY(-2px);
+}
+
+.fase-carta.active {
+    border-color: var(--uts-verde);
+    box-shadow: 0 0 0 3px rgba(195, 215, 48, .55);
+}
+
+.fase-carta-numero {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: var(--uts-gris);
+    font-weight: 700;
+}
+
+.fase-carta-nombre {
+    font-weight: 600;
+    font-size: .9rem;
+    line-height: 1.2;
+}
+
+.fase-carta-estado {
+    font-size: .78rem;
+    color: var(--uts-gris);
+}
+
+.fase-carta.completada .fase-carta-numero {
+    background: var(--uts-verde);
+    color: #ffffff;
+}
+
+.fase-carta.actual {
+    border-color: var(--uts-lima);
+    background: var(--uts-lima-claro);
+}
+
+.fase-carta.actual .fase-carta-numero {
+    background: var(--uts-lima);
+    color: var(--uts-verde-oscuro);
+}
+
+.fase-carta.actual .fase-carta-estado {
+    color: var(--uts-verde-oscuro);
+    font-weight: 600;
+}
+
+.fase-carta.rechazada .fase-carta-numero {
+    background: var(--bs-danger);
+    color: #ffffff;
+}
+
+.fase-carta.rechazada .fase-carta-estado {
+    color: var(--bs-danger);
+    font-weight: 600;
+}
+
+.fase-carta.pendiente {
+    opacity: .7;
+}
+
+.panel-fase {
+    border-top: 4px solid var(--uts-verde);
+}
+
+.btn-volver {
+    margin-bottom: 1rem;
 }
 
 .pie-pagina {
     background: #ffffff;
-    border-top: 1px solid #dee2e6;
-    color: #6c757d;
+    border-top: 3px solid var(--uts-lima);
+    color: var(--uts-gris);
 }
 
 .portada {
-    background: linear-gradient(135deg, var(--uts-verde-oscuro), var(--uts-verde));
+    position: relative;
+    min-height: 18rem;
+    display: flex;
+    align-items: flex-end;
+    background:
+        linear-gradient(90deg, rgba(19, 47, 32, .92) 0%, rgba(19, 47, 32, .75) 45%, rgba(19, 47, 32, .2) 100%),
+        url("../img/banner-portada-01.jpg") center 35% / cover no-repeat;
     color: #ffffff;
     border-radius: 0.75rem;
+    border-bottom: 5px solid var(--uts-lima);
+    overflow: hidden;
+}
+
+.portada-contenido {
+    max-width: 38rem;
+}
+
+@media (max-width: 767px) {
+    .portada {
+        background:
+            linear-gradient(rgba(19, 47, 32, .82), rgba(19, 47, 32, .82)),
+            url("../img/banner-portada-01.jpg") center / cover no-repeat;
+    }
+}
+
+.portada-etiqueta {
+    display: inline-block;
+    margin-bottom: .5rem;
+    padding: .2rem .6rem;
+    border-radius: 1rem;
+    background: var(--uts-lima);
+    color: var(--uts-verde-oscuro);
+    font-size: .8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
 }
 
 .fase-numero {
     width: 2.25rem;
     height: 2.25rem;
     border-radius: 50%;
-    background: var(--uts-verde-claro);
+    background: var(--uts-lima);
     color: var(--uts-verde-oscuro);
     font-weight: 700;
     display: inline-flex;
@@ -59,7 +428,7 @@ main {
 /* Impresión de los informes: sin menú, en papel carta y con tablas legibles */
 @media print {
     @page { size: letter; margin: 1.5cm; }
-    .barra-principal, .pie-pagina, .no-imprimir { display: none !important; }
+    .barra-principal, .menu-lateral, .btn-volver, .pie-pagina, .no-imprimir { display: none !important; }
     body { background: #ffffff; font-size: 11pt; }
     main { padding: 0 !important; }
     .informe-seccion { break-before: page; }

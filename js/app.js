@@ -18,6 +18,25 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Menú lateral: el botón Contraer deja solo los íconos y el navegador recuerda la preferencia
+    document.querySelectorAll('[data-plegar-menu]').forEach(function (boton) {
+        var raiz = document.documentElement;
+        function mostrarEstado() {
+            var plegado = raiz.classList.contains('menu-plegado');
+            boton.setAttribute('aria-pressed', plegado ? 'true' : 'false');
+            boton.setAttribute('title', plegado ? 'Expandir menú' : 'Contraer menú');
+            boton.querySelector('.menu-texto').textContent = plegado ? 'Expandir' : 'Contraer';
+        }
+        boton.addEventListener('click', function () {
+            raiz.classList.toggle('menu-plegado');
+            try {
+                localStorage.setItem('menuPlegado', raiz.classList.contains('menu-plegado') ? '1' : '0');
+            } catch (e) {}
+            mostrarEstado();
+        });
+        mostrarEstado();
+    });
+
     // Rechazo definitivo: pide confirmación y solo entonces marca confirmar=SI
     document.querySelectorAll('form[data-confirmar-rechazo]').forEach(function (formulario) {
         formulario.addEventListener('submit', function (evento) {

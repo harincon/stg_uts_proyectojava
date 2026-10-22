@@ -2,6 +2,7 @@
 <%@ include file="/WEB-INF/jspf/taglibs.jspf" %>
 <%-- VISTA: registro del estudiante. Recibe programas y, si hubo un error, los datos enviados en los parámetros. --%>
 <c:set var="tituloPagina" value="Registro de estudiante"/>
+<c:set var="volverA" value="/index.jsp"/>
 <%@ include file="/WEB-INF/vista/plantilla/cabecera.jspf" %>
 
 <div class="row justify-content-center">

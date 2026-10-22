@@ -1,0 +1,151 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- VISTA (fragmento): acciones del comité dentro de la carta de la fase actual.
+     Recibe f (fila de la ficha), rolTurno, revisionComite, rejilla, docentesProyecto y, en la fase 1, docentesDisponibles. --%>
+<c:set var="g" value="${f}"/>
+<c:set var="turnoComite" value="${g.responsable_actual eq 'COMITE' and revisionComite.rowCount gt 0}"/>
+<c:if test="${not turnoComite and g.id_fase ne 1 and g.id_fase ne 6}">
+    <p class="small text-muted mb-0"><i class="bi bi-info-circle"></i>
+        <c:out value="El turno es del ${fn:toLowerCase(rolTurno)}; el comité no tiene acciones pendientes en esta fase."/></p>
+</c:if>
+<div class="row g-3">
+    <c:if test="${turnoComite}">
+        <c:set var="rc" value="${revisionComite.rows[0]}"/>
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-success h-100">
+                <div class="card-body">
+                    <h4 class="h6">
+                        <c:choose>
+                            <c:when test="${rc.tipo_documento eq 'SOPORTE_PAGO'}">Revisar soporte de pago</c:when>
+                            <c:when test="${rc.tipo_documento eq 'F-DC-124'}">Aprobar anteproyecto</c:when>
+                            <c:otherwise>Aprobar informe final</c:otherwise>
+                        </c:choose>
+                    </h4>
+                    <p class="small mb-1">Versión <c:out value="${rc.version}"/>:
+                        <a href="<c:out value='${rc.url}'/>" target="_blank" rel="noopener">abrir documento</a></p>
+                    <c:if test="${rc.tipo_documento eq 'F-DC-125'}">
+                        <p class="small">Rejilla F-DC-129:
+                            <c:choose>
+                                <c:when test="${rejilla.rowCount gt 0}">
+                                    <a href="<c:out value='${rejilla.rows[0].url}'/>" target="_blank" rel="noopener"><c:out value="${rejilla.rows[0].url}"/></a>
+                                </c:when>
+                                <c:otherwise><span class="text-danger">no registrada</span></c:otherwise>
+                            </c:choose>
+                        </p>
+                    </c:if>
+                    <form method="post" action="<c:url value='/controlador/comite/proyecto_accion.jsp'/>" class="mb-2">
+                        <input type="hidden" name="accion" value="decidir_revision">
+                        <input type="hidden" name="id_proyecto" value="${g.id_proyecto}">
+                        <input type="hidden" name="id_revision" value="${rc.id_revision}">
+                        <input type="hidden" name="decision" value="APROBADO">
+                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-lg"></i> Aprobar</button>
+                    </form>
+                    <form method="post" action="<c:url value='/controlador/comite/proyecto_accion.jsp'/>">
+                        <input type="hidden" name="accion" value="decidir_revision">
+                        <input type="hidden" name="id_proyecto" value="${g.id_proyecto}">
+                        <input type="hidden" name="id_revision" value="${rc.id_revision}">
+                        <input type="hidden" name="decision" value="EN_CORRECCIONES">
+                        <label class="form-label small" for="obsCorrecciones">Observaciones para el estudiante</label>
+                        <textarea class="form-control form-control-sm mb-2" id="obsCorrecciones" name="observaciones" rows="3" required></textarea>
+                        <button type="submit" class="btn btn-outline-warning w-100">Solicitar correcciones</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <c:if test="${rc.tipo_documento ne 'SOPORTE_PAGO'}">
+            <div class="col-md-6 col-xl-4">
+                <div class="card border-danger h-100 zona-rechazo">
+                    <div class="card-body">
+                        <h4 class="h6 text-danger"><i class="bi bi-exclamation-octagon"></i> Rechazar definitivamente</h4>
+                        <p class="small mb-2">Solo para situaciones graves. Esta acción termina el proyecto.</p>
+                        <form method="post" action="<c:url value='/controlador/comite/proyecto_accion.jsp'/>"
+                              data-confirmar-rechazo="Esta acción termina el proyecto. ¿Está seguro?">
+                            <input type="hidden" name="accion" value="decidir_revision">
+                            <input type="hidden" name="id_proyecto" value="${g.id_proyecto}">
+                            <input type="hidden" name="id_revision" value="${rc.id_revision}">
+                            <input type="hidden" name="decision" value="RECHAZADO">
+                            <input type="hidden" name="confirmar" value="">
+                            <label class="form-label small" for="motivoRechazo">Motivo del rechazo</label>
+                            <textarea class="form-control form-control-sm mb-2" id="motivoRechazo" name="observaciones" rows="2" required></textarea>
+                            <button type="submit" class="btn btn-danger w-100">Rechazar definitivamente</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </c:if>
+    </c:if>
+
+    <c:if test="${g.id_fase eq 1}">
+        <c:set var="idDirectorActual" value=""/>
+        <c:set var="idEvaluadorActual" value=""/>
+        <c:forEach var="d" items="${docentesProyecto.rows}">
+            <c:if test="${d.funcion eq 'DIRECTOR'}"><c:set var="idDirectorActual" value="${d.id_usuario}"/></c:if>
+            <c:if test="${d.funcion eq 'EVALUADOR'}"><c:set var="idEvaluadorActual" value="${d.id_usuario}"/></c:if>
+        </c:forEach>
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h4 class="h6">Asignar director y evaluador</h4>
+                    <form method="post" action="<c:url value='/controlador/comite/proyecto_accion.jsp'/>">
+                        <input type="hidden" name="accion" value="asignar_docentes">
+                        <input type="hidden" name="id_proyecto" value="${g.id_proyecto}">
+                        <label class="form-label small" for="id_director">Director</label>
+                        <select class="form-select form-select-sm mb-2" id="id_director" name="id_director" required>
+                            <option value="">Seleccione…</option>
+                            <c:forEach var="d" items="${docentesDisponibles.rows}">
+                                <option value="${d.id_usuario}" ${d.id_usuario eq idDirectorActual ? 'selected' : ''}><c:out value="${d.nombre}"/></option>
+                            </c:forEach>
+                        </select>
+                        <label class="form-label small" for="id_evaluador">Evaluador</label>
+                        <select class="form-select form-select-sm mb-3" id="id_evaluador" name="id_evaluador" required>
+                            <option value="">Seleccione…</option>
+                            <c:forEach var="d" items="${docentesDisponibles.rows}">
+                                <option value="${d.id_usuario}" ${d.id_usuario eq idEvaluadorActual ? 'selected' : ''}><c:out value="${d.nombre}"/></option>
+                            </c:forEach>
+                        </select>
+                        <button type="submit" class="btn btn-success w-100">Guardar asignación</button>
+                        <div class="form-text">El director y el evaluador deben ser docentes distintos.</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </c:if>
+
+    <c:if test="${g.id_fase eq 6}">
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-success h-100">
+                <div class="card-body">
+                    <h4 class="h6">Finalizar proyecto</h4>
+                    <p class="small">Registre el cierre cuando el proyecto haya cumplido la sustentación y la entrega final.</p>
+                    <form method="post" action="<c:url value='/controlador/comite/proyecto_accion.jsp'/>"
+                          data-confirmar="¿Finalizar el proyecto? Esta acción no se puede deshacer.">
+                        <input type="hidden" name="accion" value="cerrar">
+                        <input type="hidden" name="id_proyecto" value="${g.id_proyecto}">
+                        <label class="form-label small" for="obsCierre">Observación de cierre (opcional)</label>
+                        <textarea class="form-control form-control-sm mb-2" id="obsCierre" name="observaciones" rows="3"></textarea>
+                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-flag"></i> Finalizar proyecto</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </c:if>
+
+    <c:if test="${g.id_fase eq 1 or g.id_fase eq 6}">
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-danger h-100 zona-rechazo">
+                <div class="card-body">
+                    <h4 class="h6 text-danger"><i class="bi bi-exclamation-octagon"></i> Rechazar definitivamente</h4>
+                    <p class="small mb-2">Solo para situaciones graves (por ejemplo, abandono del estudiante). Esta acción termina el proyecto.</p>
+                    <form method="post" action="<c:url value='/controlador/comite/proyecto_accion.jsp'/>"
+                          data-confirmar-rechazo="Esta acción termina el proyecto. ¿Está seguro?">
+                        <input type="hidden" name="accion" value="rechazar">
+                        <input type="hidden" name="id_proyecto" value="${g.id_proyecto}">
+                        <input type="hidden" name="confirmar" value="">
+                        <label class="form-label small" for="motivoRechazoProyecto">Motivo del rechazo</label>
+                        <textarea class="form-control form-control-sm mb-2" id="motivoRechazoProyecto" name="observaciones" rows="2" required></textarea>
+                        <button type="submit" class="btn btn-danger w-100">Rechazar definitivamente</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </c:if>
+</div>

@@ -1,0 +1,85 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Menú lateral según el rol de la sesión, agrupado por secciones. Usa rutaActual y volverA (opción activa). --%>
+<aside class="menu-lateral offcanvas-lg offcanvas-start" tabindex="-1" id="menuLateral" aria-label="Menú principal">
+    <div class="offcanvas-header d-lg-none">
+        <span class="fw-bold text-white">Menú</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#menuLateral" aria-label="Cerrar menú"></button>
+    </div>
+    <nav class="menu-lista">
+        <c:set var="rolMenu" value="${sessionScope.usuario.rol}"/>
+        <c:choose>
+            <c:when test="${rolMenu eq 'ADMINISTRADOR'}">
+                <c:set var="itemRuta" value="/controlador/administrador/panel.jsp"/><c:set var="itemTexto" value="Inicio"/><c:set var="itemIcono" value="bi-house"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Gestión</span></div>
+                <c:set var="itemRuta" value="/controlador/administrador/usuarios.jsp"/><c:set var="itemTexto" value="Usuarios"/><c:set var="itemIcono" value="bi-people"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <c:set var="itemRuta" value="/controlador/administrador/programas.jsp"/><c:set var="itemTexto" value="Programas"/><c:set var="itemIcono" value="bi-mortarboard"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Documentos</span></div>
+                <c:set var="itemRuta" value="/controlador/administrador/documentos.jsp"/><c:set var="itemTexto" value="Base documental"/><c:set var="itemIcono" value="bi-folder2-open"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+            </c:when>
+            <c:when test="${rolMenu eq 'COMITE'}">
+                <c:set var="itemRuta" value="/controlador/comite/panel.jsp"/><c:set var="itemTexto" value="Inicio"/><c:set var="itemIcono" value="bi-house"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Solicitudes</span></div>
+                <c:set var="itemRuta" value="/controlador/comite/inscripciones.jsp"/><c:set var="itemTexto" value="Inscripciones"/><c:set var="itemIcono" value="bi-person-check"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <c:set var="itemRuta" value="/controlador/comite/ideas.jsp"/><c:set var="itemTexto" value="Ideas"/><c:set var="itemIcono" value="bi-lightbulb"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Seguimiento</span></div>
+                <c:set var="itemRuta" value="/controlador/comite/proyectos.jsp"/><c:set var="itemTexto" value="Proyectos"/><c:set var="itemIcono" value="bi-kanban"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <c:set var="itemRuta" value="/controlador/comite/informes.jsp"/><c:set var="itemTexto" value="Informes"/><c:set var="itemIcono" value="bi-bar-chart-line"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Consulta</span></div>
+                <c:set var="itemRuta" value="/controlador/comun/banco_ideas.jsp"/><c:set var="itemTexto" value="Banco de ideas"/><c:set var="itemIcono" value="bi-collection"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <c:set var="itemRuta" value="/controlador/comun/base_documental.jsp"/><c:set var="itemTexto" value="Base documental"/><c:set var="itemIcono" value="bi-folder2-open"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+            </c:when>
+            <c:when test="${rolMenu eq 'DOCENTE'}">
+                <c:set var="itemRuta" value="/controlador/docente/panel.jsp"/><c:set var="itemTexto" value="Inicio"/><c:set var="itemIcono" value="bi-house"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Mis proyectos</span></div>
+                <c:set var="itemRuta" value="/controlador/docente/director.jsp"/><c:set var="itemTexto" value="Como director"/><c:set var="itemIcono" value="bi-person-badge"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <c:set var="itemRuta" value="/controlador/docente/evaluador.jsp"/><c:set var="itemTexto" value="Como evaluador"/><c:set var="itemIcono" value="bi-clipboard-check"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Ideas</span></div>
+                <c:set var="itemRuta" value="/controlador/comun/mis_ideas.jsp"/><c:set var="itemTexto" value="Mis ideas"/><c:set var="itemIcono" value="bi-lightbulb"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <c:set var="itemRuta" value="/controlador/comun/banco_ideas.jsp"/><c:set var="itemTexto" value="Banco de ideas"/><c:set var="itemIcono" value="bi-collection"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Consulta</span></div>
+                <c:set var="itemRuta" value="/controlador/comun/base_documental.jsp"/><c:set var="itemTexto" value="Base documental"/><c:set var="itemIcono" value="bi-folder2-open"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+            </c:when>
+            <c:when test="${sessionScope.usuario.estado_inscripcion eq 'APROBADO'}">
+                <c:set var="itemRuta" value="/controlador/estudiante/panel.jsp"/><c:set var="itemTexto" value="Inicio"/><c:set var="itemIcono" value="bi-house"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Ideas</span></div>
+                <c:set var="itemRuta" value="/controlador/comun/mis_ideas.jsp"/><c:set var="itemTexto" value="Mis ideas"/><c:set var="itemIcono" value="bi-lightbulb"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <c:set var="itemRuta" value="/controlador/comun/banco_ideas.jsp"/><c:set var="itemTexto" value="Banco de ideas"/><c:set var="itemIcono" value="bi-collection"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Consulta</span></div>
+                <c:set var="itemRuta" value="/controlador/comun/base_documental.jsp"/><c:set var="itemTexto" value="Base documental"/><c:set var="itemIcono" value="bi-folder2-open"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+            </c:when>
+            <c:otherwise>
+                <c:set var="itemRuta" value="/controlador/estudiante/inscripcion.jsp"/><c:set var="itemTexto" value="Estado de mi inscripción"/><c:set var="itemIcono" value="bi-hourglass-split"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+                <div class="menu-seccion"><span>Consulta</span></div>
+                <c:set var="itemRuta" value="/controlador/comun/base_documental.jsp"/><c:set var="itemTexto" value="Base documental"/><c:set var="itemIcono" value="bi-folder2-open"/>
+                <%@ include file="/WEB-INF/vista/plantilla/item_menu.jspf" %>
+            </c:otherwise>
+        </c:choose>
+    </nav>
+    <div class="menu-pie d-none d-lg-block">
+        <button type="button" class="menu-item" data-plegar-menu title="Contraer menú" aria-pressed="false">
+            <i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i><span class="menu-texto">Contraer</span>
+        </button>
+    </div>
+</aside>
