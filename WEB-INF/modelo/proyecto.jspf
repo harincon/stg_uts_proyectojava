@@ -15,7 +15,10 @@
        actualizarTurno       entrada: idProyecto, faseNueva, responsableNuevo
        conteoFase1                                                         salida: conteoFase1
                              (soportes de pago pendientes y proyectos en fase 1 sin los dos docentes)
-       listarParaComite      entrada: filtroFase, filtroEstado, filtroResponsable   salida: listaProyectos
+       conteoPorCerrar                                                     salida: conteoPorCerrar
+                             (proyectos en curso en la fase 6, listos para el cierre)
+       listarParaComite      entrada: filtroFase, filtroEstado, filtroResponsable, filtroBusqueda   salida: listaProyectos
+                             (filtroBusqueda: nombre o identificación de un estudiante, título o nombre de un docente)
        terminar              entrada: idProyecto, estadoFinal (FINALIZADO | RECHAZADO), observacionCierre --%>
 <c:choose>
     <c:when test="${operacion eq 'consultarIdea' or operacion eq 'bloquearIdea'}">
@@ -159,6 +162,11 @@
                       AND (SELECT COUNT(*) FROM asignaciones a WHERE a.id_proyecto = p.id_proyecto) < 2) AS sin_docentes
         </sql:query>
     </c:when>
+    <c:when test="${operacion eq 'conteoPorCerrar'}">
+        <sql:query var="conteoPorCerrar" scope="request">
+            SELECT COUNT(*) AS total FROM proyectos WHERE estado = 'EN_CURSO' AND id_fase = 6
+        </sql:query>
+    </c:when>
     <c:when test="${operacion eq 'listarParaComite'}">
         <sql:query var="listaProyectos" scope="request">
             SELECT p.id_proyecto, p.id_fase, p.estado, p.responsable_actual, i.titulo,
@@ -176,6 +184,18 @@
             WHERE (COALESCE(?, '') = '' OR CAST(p.id_fase AS TEXT) = ?)
               AND (COALESCE(?, '') = '' OR p.estado = ?)
               AND (COALESCE(?, '') = '' OR p.responsable_actual = ?)
+              AND (COALESCE(?, '') = ''
+                   OR strpos(lower(i.titulo), lower(?)) > 0
+                   OR EXISTS (SELECT 1 FROM proyecto_estudiantes pe
+                              JOIN estudiantes e ON e.id_estudiante = pe.id_estudiante
+                              JOIN usuarios u ON u.id_usuario = e.id_usuario
+                              WHERE pe.id_proyecto = p.id_proyecto
+                                AND (strpos(lower(u.nombres || ' ' || u.apellidos), lower(?)) > 0
+                                     OR strpos(u.identificacion, ?) > 0))
+                   OR EXISTS (SELECT 1 FROM asignaciones a
+                              JOIN usuarios u ON u.id_usuario = a.id_usuario
+                              WHERE a.id_proyecto = p.id_proyecto
+                                AND strpos(lower(u.nombres || ' ' || u.apellidos), lower(?)) > 0))
             ORDER BY p.estado, p.id_fase, i.titulo
             <sql:param value="${filtroFase}"/>
             <sql:param value="${filtroFase}"/>
@@ -183,6 +203,11 @@
             <sql:param value="${filtroEstado}"/>
             <sql:param value="${filtroResponsable}"/>
             <sql:param value="${filtroResponsable}"/>
+            <sql:param value="${filtroBusqueda}"/>
+            <sql:param value="${filtroBusqueda}"/>
+            <sql:param value="${filtroBusqueda}"/>
+            <sql:param value="${filtroBusqueda}"/>
+            <sql:param value="${filtroBusqueda}"/>
         </sql:query>
     </c:when>
     <c:when test="${operacion eq 'terminar'}">

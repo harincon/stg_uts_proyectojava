@@ -1,6 +1,6 @@
 <%@ page pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/jspf/taglibs.jspf" %>
-<%-- VISTA: proyectos para el comité. Recibe listaProyectos, filtroFase, filtroEstado y filtroResponsable. --%>
+<%-- VISTA: proyectos para el comité. Recibe listaProyectos, filtroBusqueda, filtroFase, filtroEstado y filtroResponsable. --%>
 <c:set var="tituloPagina" value="Proyectos"/>
 <%@ include file="/WEB-INF/vista/plantilla/cabecera.jspf" %>
 
@@ -8,6 +8,10 @@
 <%@ include file="/WEB-INF/vista/plantilla/mensajes.jspf" %>
 
 <form class="row g-2 mb-3" method="get" action="<c:url value='/controlador/comite/proyectos.jsp'/>">
+    <div class="col-12">
+        <input type="search" class="form-control" name="q" value="<c:out value='${filtroBusqueda}'/>" maxlength="100"
+               placeholder="Buscar por estudiante (nombre o identificación), título o docente" aria-label="Buscar proyectos">
+    </div>
     <div class="col-6 col-md-3">
         <select class="form-select" name="fase" aria-label="Fase">
             <option value="">Todas las fases</option>

@@ -11,6 +11,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Botones que abren el diálogo de impresión del navegador (atributo data-imprimir)
+    document.querySelectorAll('[data-imprimir]').forEach(function (boton) {
+        boton.addEventListener('click', function () {
+            window.print();
+        });
+    });
+
     // Rechazo definitivo: pide confirmación y solo entonces marca confirmar=SI
     document.querySelectorAll('form[data-confirmar-rechazo]').forEach(function (formulario) {
         formulario.addEventListener('submit', function (evento) {

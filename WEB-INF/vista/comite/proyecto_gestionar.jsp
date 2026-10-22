@@ -74,6 +74,41 @@
             </c:if>
         </c:if>
 
+        <c:if test="${g.id_fase eq 6 and g.estado eq 'EN_CURSO'}">
+            <div class="card shadow-sm border-success mb-3">
+                <div class="card-body">
+                    <h2 class="h5">Finalizar proyecto</h2>
+                    <p class="small">Registre el cierre cuando el proyecto haya cumplido la sustentación y la entrega final.</p>
+                    <form method="post" action="<c:url value='/controlador/comite/proyecto_accion.jsp'/>"
+                          data-confirmar="¿Finalizar el proyecto? Esta acción no se puede deshacer.">
+                        <input type="hidden" name="accion" value="cerrar">
+                        <input type="hidden" name="id_proyecto" value="${g.id_proyecto}">
+                        <label class="form-label small" for="obsCierre">Observación de cierre (opcional)</label>
+                        <textarea class="form-control form-control-sm mb-2" id="obsCierre" name="observaciones" rows="3"></textarea>
+                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-flag"></i> Finalizar proyecto</button>
+                    </form>
+                </div>
+            </div>
+        </c:if>
+
+        <c:if test="${(g.id_fase eq 1 or g.id_fase eq 6) and g.estado eq 'EN_CURSO'}">
+            <div class="card border-danger mb-3 zona-rechazo">
+                <div class="card-body">
+                    <h2 class="h6 text-danger"><i class="bi bi-exclamation-octagon"></i> Rechazar definitivamente</h2>
+                    <p class="small mb-2">Solo para situaciones graves (por ejemplo, abandono del estudiante). Esta acción termina el proyecto.</p>
+                    <form method="post" action="<c:url value='/controlador/comite/proyecto_accion.jsp'/>"
+                          data-confirmar-rechazo="Esta acción termina el proyecto. ¿Está seguro?">
+                        <input type="hidden" name="accion" value="rechazar">
+                        <input type="hidden" name="id_proyecto" value="${g.id_proyecto}">
+                        <input type="hidden" name="confirmar" value="">
+                        <label class="form-label small" for="motivoRechazoProyecto">Motivo del rechazo</label>
+                        <textarea class="form-control form-control-sm mb-2" id="motivoRechazoProyecto" name="observaciones" rows="2" required></textarea>
+                        <button type="submit" class="btn btn-danger w-100">Rechazar definitivamente</button>
+                    </form>
+                </div>
+            </div>
+        </c:if>
+
         <c:if test="${g.id_fase eq 1 and g.estado eq 'EN_CURSO'}">
             <c:set var="idDirectorActual" value=""/>
             <c:set var="idEvaluadorActual" value=""/>

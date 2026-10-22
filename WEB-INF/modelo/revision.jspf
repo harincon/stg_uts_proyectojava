@@ -7,7 +7,9 @@
                           (bloquea la revisión y su proyecto: FOR UPDATE)
        decidir            entrada: idRevisionObjetivo, estadoNuevo, observaciones, idUsuario
                           salida: filasActualizadas (solo decide revisiones PENDIENTE_REVISION)
-       estadoPago         entrada: idProyecto                                  salida: estadoPago
+       rechazarPendientesComite  entrada: idProyecto, observaciones, idUsuario
+                          (cierra como RECHAZADO la revisión del comité que siga pendiente)
+       estadoPago        entrada: idProyecto                                  salida: estadoPago
                           (estado de la revisión del comité sobre el último soporte de pago)
        obtener            entrada: idRevisionObjetivo                          salida: revisionDocente
        conteoComite                                                            salida: conteoComite
@@ -65,6 +67,17 @@
             <sql:param value="${observaciones}"/>
             <sql:param value="${idUsuario}"/>
             <sql:param value="${idRevisionObjetivo}"/>
+        </sql:update>
+    </c:when>
+    <c:when test="${operacion eq 'rechazarPendientesComite'}">
+        <sql:update>
+            UPDATE revisiones
+            SET estado = 'RECHAZADO', observaciones = ?, id_usuario = ?, fecha_revision = CURRENT_TIMESTAMP
+            WHERE funcion = 'COMITE' AND estado = 'PENDIENTE_REVISION'
+              AND id_version IN (SELECT id_version FROM historial_versiones WHERE id_proyecto = ?)
+            <sql:param value="${observaciones}"/>
+            <sql:param value="${idUsuario}"/>
+            <sql:param value="${idProyecto}"/>
         </sql:update>
     </c:when>
     <c:when test="${operacion eq 'estadoPago'}">

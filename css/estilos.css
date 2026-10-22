@@ -52,3 +52,19 @@ main {
 
 .apartado-director, .encabezado-director { border-left: 4px solid #0d6efd; padding-left: .5rem; }
 .apartado-evaluador, .encabezado-evaluador { border-left: 4px solid #6f42c1; padding-left: .5rem; }
+
+.informe-seccion .col-situacion { width: 11rem; }
+.informe-seccion .col-pendiente { width: 10rem; }
+
+/* Impresión de los informes: sin menú, en papel carta y con tablas legibles */
+@media print {
+    @page { size: letter; margin: 1.5cm; }
+    .barra-principal, .pie-pagina, .no-imprimir { display: none !important; }
+    body { background: #ffffff; font-size: 11pt; }
+    main { padding: 0 !important; }
+    .informe-seccion { break-before: page; }
+    .informe-seccion:first-of-type { break-before: auto; }
+    .informe-docente, tr { break-inside: avoid; }
+    .table-responsive { overflow: visible; }
+    .badge { border: 1px solid #6c757d; color: #000000 !important; background: none !important; }
+}

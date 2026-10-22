@@ -1,6 +1,6 @@
 <%@ page pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/jspf/taglibs.jspf" %>
-<%-- VISTA: panel del comité. Recibe pendientes (inscripciones), ideasPendientes, conteoFase1 y conteoComite. --%>
+<%-- VISTA: panel del comité. Recibe pendientes (inscripciones), ideasPendientes, conteoFase1, conteoPorCerrar y conteoComite. --%>
 <c:set var="tituloPagina" value="Panel del comité"/>
 <%@ include file="/WEB-INF/vista/plantilla/cabecera.jspf" %>
 
@@ -70,6 +70,18 @@
                 <div class="text-muted small">Informes finales por aprobar</div>
                 <div class="display-6 fw-bold text-success"><c:out value="${conteoComite.rows[0].informes}"/></div>
                 <div class="small">Revisar con la rejilla F-DC-129 &raquo;</div>
+            </div>
+        </a>
+    </div>
+    <c:url var="urlPorCerrar" value="/controlador/comite/proyectos.jsp">
+        <c:param name="fase" value="6"/><c:param name="estado" value="EN_CURSO"/>
+    </c:url>
+    <div class="col-sm-6 col-lg-4">
+        <a class="card shadow-sm h-100 text-decoration-none" href="${urlPorCerrar}">
+            <div class="card-body">
+                <div class="text-muted small">Proyectos por cerrar</div>
+                <div class="display-6 fw-bold text-success"><c:out value="${conteoPorCerrar.rows[0].total}"/></div>
+                <div class="small">Registrar la sustentación y finalizar &raquo;</div>
             </div>
         </a>
     </div>

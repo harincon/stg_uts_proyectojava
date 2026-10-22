@@ -1,0 +1,35 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Tabla de un informe por docente (director o evaluador), agrupada por docente.
+     Entrada: filasDocentes (filas de informeDocentes), textoSinProyectos --%>
+<c:set var="docenteAnterior" value=""/>
+<c:forEach var="r" items="${filasDocentes.rows}" varStatus="st">
+    <c:if test="${r.id_usuario ne docenteAnterior}">
+        <c:if test="${not st.first}"></tbody></table></div></c:if>
+        <div class="informe-docente mb-3" data-docente="<c:out value='${r.docente}'/>">
+        <h3 class="h6 mb-1"><c:out value="${r.docente}"/>
+            <c:if test="${not r.activo}"><span class="badge text-bg-secondary">Inactivo</span></c:if></h3>
+        <table class="table table-sm table-bordered bg-white mb-0">
+            <thead class="table-light"><tr><th>Proyecto</th><th class="col-situacion">Situación</th><th class="col-pendiente">Revisión</th></tr></thead>
+            <tbody>
+        <c:set var="docenteAnterior" value="${r.id_usuario}"/>
+    </c:if>
+    <c:choose>
+        <c:when test="${empty r.id_proyecto}">
+            <tr><td colspan="3" class="text-muted"><c:out value="${textoSinProyectos}"/></td></tr>
+        </c:when>
+        <c:otherwise>
+            <c:set var="efFase" value="${r.id_fase}"/>
+            <c:set var="efResponsable" value="${r.responsable_actual}"/>
+            <c:set var="efEstado" value="${r.estado}"/>
+            <tr>
+                <td><c:out value="${r.titulo}"/></td>
+                <td><%@ include file="/WEB-INF/vista/plantilla/etiqueta_fase.jspf" %></td>
+                <td>${r.pendiente ? '<span class="badge text-bg-warning">Revisión pendiente</span>' : '<span class="text-muted small">Al día</span>'}</td>
+            </tr>
+        </c:otherwise>
+    </c:choose>
+    <c:if test="${st.last}"></tbody></table></div></c:if>
+</c:forEach>
+<c:if test="${filasDocentes.rowCount eq 0}">
+    <p class="text-muted">No hay docentes registrados.</p>
+</c:if>

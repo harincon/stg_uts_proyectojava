@@ -1,0 +1,63 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- MODELO: consultas de los informes de estado del comité (solo lectura, sobre varias tablas).
+       porEstudiante                                   salida: informeEstudiantes
+                     (estudiantes con inscripción aprobada y sus proyectos, si los tienen)
+       porDocente     entrada: funcionInforme (DIRECTOR | EVALUADOR)   salida: informeDocentes
+                     (docentes activos, o con proyectos, y los proyectos que tienen en esa función)
+       resumenPorFase                                  salida: resumenFases (proyectos en curso por fase)
+       resumenGeneral                                  salida: resumenGeneral
+                     (proyectos por estado y estudiantes vinculados a proyectos en curso) --%>
+<c:choose>
+    <c:when test="${operacion eq 'porEstudiante'}">
+        <sql:query var="informeEstudiantes" scope="request">
+            SELECT u.nombres || ' ' || u.apellidos AS nombre, u.identificacion, pr.nombre AS programa, e.semestre,
+                   p.id_proyecto, p.id_fase, p.estado, p.responsable_actual, i.titulo
+            FROM estudiantes e
+            JOIN usuarios u ON u.id_usuario = e.id_usuario
+            JOIN programas pr ON pr.id_programa = e.id_programa
+            LEFT JOIN proyecto_estudiantes pe ON pe.id_estudiante = e.id_estudiante
+            LEFT JOIN proyectos p ON p.id_proyecto = pe.id_proyecto
+            LEFT JOIN ideas i ON i.id_idea = p.id_idea
+            WHERE e.estado_inscripcion = 'APROBADO'
+            ORDER BY u.apellidos, u.nombres, (p.estado = 'EN_CURSO') DESC, p.fecha_inicio DESC
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'porDocente'}">
+        <sql:query var="informeDocentes" scope="request">
+            SELECT u.id_usuario, u.nombres || ' ' || u.apellidos AS docente, u.activo,
+                   p.id_proyecto, p.id_fase, p.estado, p.responsable_actual, i.titulo,
+                   EXISTS (SELECT 1 FROM revisiones r
+                           JOIN historial_versiones h ON h.id_version = r.id_version
+                           WHERE h.id_proyecto = p.id_proyecto AND r.funcion = a.funcion
+                             AND r.estado = 'PENDIENTE_REVISION' AND p.estado = 'EN_CURSO') AS pendiente
+            FROM usuarios u
+            JOIN roles ro ON ro.id_rol = u.id_rol
+            LEFT JOIN asignaciones a ON a.id_usuario = u.id_usuario AND a.funcion = ?
+            LEFT JOIN proyectos p ON p.id_proyecto = a.id_proyecto
+            LEFT JOIN ideas i ON i.id_idea = p.id_idea
+            WHERE ro.nombre = 'DOCENTE' AND (u.activo OR a.id_proyecto IS NOT NULL)
+            ORDER BY u.apellidos, u.nombres, u.id_usuario, p.estado, p.id_fase, i.titulo
+            <sql:param value="${funcionInforme}"/>
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'resumenPorFase'}">
+        <sql:query var="resumenFases" scope="request">
+            SELECT f.id_fase, f.nombre, COUNT(p.id_proyecto) AS total
+            FROM fases f
+            LEFT JOIN proyectos p ON p.id_fase = f.id_fase AND p.estado = 'EN_CURSO'
+            GROUP BY f.id_fase, f.nombre
+            ORDER BY f.id_fase
+        </sql:query>
+    </c:when>
+    <c:when test="${operacion eq 'resumenGeneral'}">
+        <sql:query var="resumenGeneral" scope="request">
+            SELECT (SELECT COUNT(*) FROM proyectos WHERE estado = 'EN_CURSO') AS en_curso,
+                   (SELECT COUNT(*) FROM proyectos WHERE estado = 'FINALIZADO') AS finalizados,
+                   (SELECT COUNT(*) FROM proyectos WHERE estado = 'RECHAZADO') AS rechazados,
+                   (SELECT COUNT(DISTINCT pe.id_estudiante)
+                    FROM proyecto_estudiantes pe
+                    JOIN proyectos p ON p.id_proyecto = pe.id_proyecto
+                    WHERE p.estado = 'EN_CURSO') AS vinculados
+        </sql:query>
+    </c:when>
+</c:choose>

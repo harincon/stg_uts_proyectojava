@@ -2,7 +2,8 @@
 <%@ include file="/WEB-INF/jspf/taglibs.jspf" %>
 <%@ include file="/WEB-INF/modelo/conexion.jspf" %>
 <%-- CONTROLADOR: acciones del comité sobre un proyecto.
-     accion = decidir_revision (revisión del comité en turno) | asignar_docentes (solo fase 1) --%>
+     accion = decidir_revision (revisión del comité en turno) | asignar_docentes (solo fase 1)
+            | cerrar (solo fase 6) | rechazar (fases 1 y 6) --%>
 <c:set var="rolesPermitidos" value="COMITE"/>
 <%@ include file="/WEB-INF/jspf/seguridad.jspf" %>
 <c:if test="${pageContext.request.method ne 'POST'}">
@@ -116,6 +117,45 @@
                         <%@ include file="/WEB-INF/modelo/asignacion.jspf" %>
                         <%@ include file="/WEB-INF/jspf/avanzar_fase1.jspf" %>
                         <c:set var="mensaje" value="Docentes asignados.${avanzoFase ? ' El proyecto pasó a la fase 2.' : ''}"/>
+                    </c:otherwise>
+                </c:choose>
+            </c:when>
+
+            <%-- ===== Cerrar (T19) o rechazar definitivamente (T20) ===== --%>
+            <c:when test="${accion eq 'cerrar' or accion eq 'rechazar'}">
+                <c:set var="observaciones" value="${fn:trim(param.observaciones)}"/>
+                <c:set var="operacion" value="bloquear"/>
+                <%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+                <c:set var="pb" value="${proyectoBloqueado.rowCount gt 0 ? proyectoBloqueado.rows[0] : null}"/>
+                <c:choose>
+                    <c:when test="${empty pb}">
+                        <c:set var="error" value="Proyecto no válido."/>
+                    </c:when>
+                    <c:when test="${pb.estado ne 'EN_CURSO'}">
+                        <c:set var="error" value="El proyecto ya terminó."/>
+                    </c:when>
+                    <c:when test="${accion eq 'cerrar' and pb.id_fase ne 6}">
+                        <c:set var="error" value="Solo se cierran proyectos en la fase 6."/>
+                    </c:when>
+                    <c:when test="${accion eq 'rechazar' and pb.id_fase ne 1 and pb.id_fase ne 6}">
+                        <c:set var="error" value="En esta fase el rechazo lo registra el revisor en turno."/>
+                    </c:when>
+                    <c:when test="${accion eq 'rechazar' and param.confirmar ne 'SI'}">
+                        <c:set var="error" value="Confirme el rechazo definitivo."/>
+                    </c:when>
+                    <c:when test="${accion eq 'rechazar' and empty observaciones}">
+                        <c:set var="error" value="Escriba el motivo del rechazo."/>
+                    </c:when>
+                    <c:otherwise>
+                        <c:if test="${accion eq 'rechazar'}">
+                            <c:set var="operacion" value="rechazarPendientesComite"/>
+                            <%@ include file="/WEB-INF/modelo/revision.jspf" %>
+                        </c:if>
+                        <c:set var="operacion" value="terminar"/>
+                        <c:set var="estadoFinal" value="${accion eq 'cerrar' ? 'FINALIZADO' : 'RECHAZADO'}"/>
+                        <c:set var="observacionCierre" value="${observaciones}"/>
+                        <%@ include file="/WEB-INF/modelo/proyecto.jspf" %>
+                        <c:set var="mensaje" value="${accion eq 'cerrar' ? 'Proyecto finalizado.' : 'Proyecto rechazado definitivamente.'}"/>
                     </c:otherwise>
                 </c:choose>
             </c:when>
