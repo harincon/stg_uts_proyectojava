@@ -4,3 +4,4 @@ pruebas/
 *.log
 .vscode/
 img/logo-uts.svg
+sql/02_datos_prueba.sql
