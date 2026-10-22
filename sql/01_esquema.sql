@@ -149,10 +149,3 @@ INSERT INTO programas (nombre) VALUES
     ('Tecnología en Desarrollo de Sistemas Informáticos'),
     ('Ingeniería de Sistemas');
 
-INSERT INTO usuarios (id_rol, nombres, apellidos, identificacion, correo, contrasena)
-VALUES (1, 'Administrador', 'Sistema', '0000000000', 'admin@uts.edu.co',
-        crypt('Admin123', gen_salt('bf')));
-
-INSERT INTO documentos_institucionales (nombre, url) VALUES
-    ('Reglamento de Trabajo de Grado',
-     'https://www.uts.edu.co/sitio/wp-content/uploads/normatividad/acuerdos/acu-73.pdf');
