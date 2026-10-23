@@ -25,3 +25,4 @@ Patrón **MVC** construido solo con **JSP y JSTL 1.2**, sin servlets propios, si
 - JSP y JSTL 1.2
 - PostgreSQL
 - Bootstrap 5 y JavaScript (solo en el navegador)
+- Docker (despliegue en Render)

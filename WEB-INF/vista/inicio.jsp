@@ -1,6 +1,6 @@
 <%@ page pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/jspf/taglibs.jspf" %>
-<%-- VISTA: página de inicio. Recibe fases, usuariosPrueba y errorBD. --%>
+<%-- VISTA: página de inicio. Recibe fases, errorBD, modoDemo y, en modo demostración, usuariosPrueba. --%>
 <c:set var="tituloPagina" value="Inicio - Trabajos de Grado UTS"/>
 <%@ include file="/WEB-INF/vista/plantilla/cabecera.jspf" %>
 
@@ -55,15 +55,18 @@
                 </form>
                 <p class="text-center small mt-3 mb-0">¿Es estudiante y no tiene cuenta?
                     <a href="<c:url value='/controlador/registro.jsp'/>">Registrarse</a></p>
-                <button type="button" class="btn btn-outline-secondary w-100 mt-3"
-                        data-bs-toggle="modal" data-bs-target="#modalUsuariosPrueba">
-                    <i class="bi bi-people"></i> Usuarios de prueba
-                </button>
+                <c:if test="${modoDemo}">
+                    <button type="button" class="btn btn-outline-secondary w-100 mt-3"
+                            data-bs-toggle="modal" data-bs-target="#modalUsuariosPrueba">
+                        <i class="bi bi-people"></i> Usuarios de prueba
+                    </button>
+                </c:if>
             </div>
         </div>
     </div>
 </div>
 
+<c:if test="${modoDemo}">
 <div class="modal fade" id="modalUsuariosPrueba" tabindex="-1" aria-labelledby="tituloUsuariosPrueba" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -93,5 +96,6 @@
         </div>
     </div>
 </div>
+</c:if>
 
 <%@ include file="/WEB-INF/vista/plantilla/pie.jspf" %>
