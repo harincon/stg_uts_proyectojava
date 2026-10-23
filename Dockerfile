@@ -11,5 +11,8 @@ COPY . /usr/local/tomcat/webapps/ROOT/
 
 EXPOSE 8080
 
-# Render indica el puerto en la variable PORT; si no existe, Tomcat usa 8080
-CMD sed -i "s/port=\"8080\"/port=\"${PORT:-8080}\"/" conf/server.xml && exec catalina.sh run
+# Render indica el puerto en la variable PORT (si no existe, 8080) y lo busca en 0.0.0.0.
+# Se apaga el puerto de apagado (8005) para que el único puerto abierto sea el de la página.
+CMD sed -i -e "s/port=\"8005\"/port=\"-1\"/" \
+           -e "s/port=\"8080\"/port=\"${PORT:-8080}\" address=\"0.0.0.0\"/" conf/server.xml \
+    && exec catalina.sh run
